@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Header } from "@/components/layout/Header";
@@ -98,6 +99,15 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://plausible.io/js/pa-dOObV2-MBMKT5nhiBI0Oq.js"
+          strategy="afterInteractive"
+        />
+        <Script id="plausible-init" strategy="afterInteractive">
+          {`window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()`}
+        </Script>
+      </head>
       <body className={`${cormorant.variable} ${inter.variable} antialiased`}>
         <script
           type="application/ld+json"
