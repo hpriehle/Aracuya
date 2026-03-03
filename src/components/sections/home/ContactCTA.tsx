@@ -24,8 +24,8 @@ export function ContactCTA() {
         </FadeIn>
         <FadeIn delay={0.3}>
           <div className="mt-10">
-            <Button href="/contact" variant="dark">
-              Get in Touch
+            <Button href="/reserve" variant="dark">
+              Reserve Your Stay
             </Button>
           </div>
         </FadeIn>

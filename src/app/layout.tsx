@@ -69,7 +69,7 @@ export default function RootLayout({
     description:
       "Experience refined luxury at Aracuya — a boutique hotel in Paradise Valley, Arizona. Three beautifully appointed rooms, curated experiences, and the art of unhurried living.",
     url: "https://aracuya.com",
-    telephone: "+15550000000",
+    telephone: "+233597957528",
     email: "info@aracuya.com",
     priceRange: "$$",
     address: {

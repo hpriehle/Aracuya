@@ -69,7 +69,7 @@ export function FeaturedRoom() {
 
             <FadeIn delay={0.3}>
               <div className="mt-10">
-                <Button href="/rooms">View Rooms & Book</Button>
+                <Button href="/reserve">View Rooms & Book</Button>
               </div>
             </FadeIn>
           </div>

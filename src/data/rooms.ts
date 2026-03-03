@@ -1,6 +1,6 @@
 import { Room } from "@/types/room";
 
-export const WHATSAPP_NUMBER = "233551542355";
+export const WHATSAPP_NUMBER = "233597957528";
 
 export const rooms: Room[] = [
   {

@@ -166,7 +166,7 @@ export function Calendar({
       className={cn(
         "w-full rounded-lg p-4",
         isDark
-          ? "border border-white/10 bg-black/80 backdrop-blur-xl"
+          ? "border border-white/10 bg-black/95 backdrop-blur-xl"
           : "border border-gray-light bg-white shadow-lg"
       )}
     >

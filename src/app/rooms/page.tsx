@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { FadeIn } from "@/components/animation/FadeIn";
-import { BookingWidget } from "@/components/ui/BookingWidget";
 import { Button } from "@/components/ui/Button";
 import { rooms } from "@/data/rooms";
 
@@ -124,13 +123,14 @@ export default function RoomsPage() {
                   {property.description}
                 </p>
 
-                <div className="mt-8">
-                  <BookingWidget />
+                <div className="mt-8 flex flex-col items-center gap-3">
+                  <Button href="/reserve">
+                    Reserve
+                  </Button>
+                  <Button href={`/rooms/${property.slug}`} variant="outline" size="sm">
+                    View Gallery & Details
+                  </Button>
                 </div>
-
-                <Button href={`/rooms/${property.slug}`} variant="outline" size="sm" className="mt-6">
-                  View Gallery & Details
-                </Button>
               </div>
             </FadeIn>
           </div>

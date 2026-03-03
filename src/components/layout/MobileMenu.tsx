@@ -98,7 +98,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             </Link>
           ))}
           <Link
-            href="/contact"
+            href="/reserve"
             onClick={onClose}
             className="mt-4 border border-cream/30 px-8 py-3 font-body text-small font-medium uppercase tracking-widest text-cream transition-colors duration-300 hover:bg-cream hover:text-green-dark"
           >

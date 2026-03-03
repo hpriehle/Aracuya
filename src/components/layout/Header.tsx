@@ -19,6 +19,7 @@ export function Header() {
   const hasDarkHero =
     pathname === "/" ||
     pathname === "/about" ||
+    pathname === "/reserve" ||
     (pathname.startsWith("/rooms/") && pathname !== "/rooms");
 
   const isScrolled = scrollY > 50 || !hasDarkHero;
@@ -72,7 +73,7 @@ export function Header() {
           <div className="hidden items-center gap-4 md:flex">
             <CurrencyToggle variant={isScrolled ? "light" : "dark"} />
             <Button
-              href="/contact"
+              href="/reserve"
               size="sm"
               variant={isScrolled ? "primary" : "dark"}
             >

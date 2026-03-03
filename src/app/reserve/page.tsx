@@ -1,0 +1,56 @@
+import { Metadata } from "next";
+import Image from "next/image";
+import { AbeikuEmbed } from "@/components/ui/AbeikuEmbed";
+
+export const metadata: Metadata = {
+  title: "Reserve",
+  description:
+    "Book your stay at Aracuya. Choose one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+  alternates: {
+    canonical: "/reserve",
+  },
+  openGraph: {
+    title: "Reserve | Aracuya",
+    description:
+      "Book your stay at Aracuya. Choose one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+    images: [
+      {
+        url: "/images/hero/main.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Aracuya Luxury Hotel",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Reserve | Aracuya",
+    description:
+      "Book your stay at Aracuya. Choose one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+    images: ["/images/hero/main.jpg"],
+  },
+};
+
+export default function ReservePage() {
+  return (
+    <section className="relative min-h-dvh w-full overflow-hidden">
+      <div className="absolute inset-0 bg-black/50 z-10" />
+
+      <Image
+        src="/images/hero/main.jpg"
+        alt="Aracuya luxury hotel"
+        fill
+        priority
+        quality={85}
+        sizes="100vw"
+        className="object-cover"
+      />
+
+      <div className="relative z-20 flex min-h-dvh items-center justify-center px-5 py-32">
+        <div className="w-full max-w-md">
+          <AbeikuEmbed hotel="aracuya" />
+        </div>
+      </div>
+    </section>
+  );
+}

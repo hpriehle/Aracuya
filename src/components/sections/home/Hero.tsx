@@ -67,7 +67,7 @@ export function Hero() {
         </h1>
         <div ref={buttonRef} className="mt-8 opacity-0">
           <Link
-            href="/contact"
+            href="/reserve"
             className="inline-flex items-center justify-center rounded border border-white px-9 py-4 font-body text-small font-medium uppercase tracking-widest text-white transition-all duration-300 hover:border-green hover:bg-green"
           >
             Reserve

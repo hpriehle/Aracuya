@@ -35,26 +35,6 @@ export function Experience() {
                 meaningful moments.
               </p>
             </FadeIn>
-            <FadeIn delay={0.3}>
-              <div className="mt-8 flex justify-center gap-12">
-                <div>
-                  <p className="font-heading text-h2 font-light text-green">
-                    15+
-                  </p>
-                  <p className="mt-1 font-body text-small text-gray">
-                    Years of excellence
-                  </p>
-                </div>
-                <div>
-                  <p className="font-heading text-h2 font-light text-green">
-                    98%
-                  </p>
-                  <p className="mt-1 font-body text-small text-gray">
-                    Guest satisfaction
-                  </p>
-                </div>
-              </div>
-            </FadeIn>
           </div>
         </div>
       </Container>
