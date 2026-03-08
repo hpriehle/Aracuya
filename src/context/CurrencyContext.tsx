@@ -27,7 +27,7 @@ const CurrencyContext = createContext<CurrencyContextValue>({
 });
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>("GHS");
   const [rate, setRate] = useState(FALLBACK_RATE);
 
   useEffect(() => {

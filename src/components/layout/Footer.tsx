@@ -54,11 +54,11 @@ export function Footer() {
                 info@aracuya.com
               </a>
               <div className="flex items-center gap-2">
-                <a href="tel:+233597957528" className="transition-colors duration-300 hover:text-cream">
-                  +233 597 957 528
+                <a href="tel:+233551542355" className="transition-colors duration-300 hover:text-cream">
+                  +233 55 154 2355
                 </a>
                 <a
-                  href="https://wa.me/233597957528"
+                  href="https://wa.me/233551542355"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Chat on WhatsApp"

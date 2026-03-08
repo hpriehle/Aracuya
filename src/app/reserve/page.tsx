@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
-import { AbeikuEmbed } from "@/components/ui/AbeikuEmbed";
+import { BookingWidget } from "@/components/ui/BookingWidget";
 
 export const metadata: Metadata = {
   title: "Reserve",
@@ -48,7 +48,7 @@ export default function ReservePage() {
 
       <div className="relative z-20 flex min-h-dvh items-center justify-center px-5 py-32">
         <div className="w-full max-w-md">
-          <AbeikuEmbed hotel="aracuya" />
+          <BookingWidget variant="dark" />
         </div>
       </div>
     </section>

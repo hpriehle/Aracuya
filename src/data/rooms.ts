@@ -1,6 +1,6 @@
 import { Room } from "@/types/room";
 
-export const WHATSAPP_NUMBER = "233597957528";
+export const WHATSAPP_NUMBER = "233551542355";
 
 export const rooms: Room[] = [
   {
@@ -10,9 +10,9 @@ export const rooms: Room[] = [
     description:
       "A sanctuary of refined luxury, Aracuya offers sweeping views and meticulous attention to detail. From the hand-selected furnishings to the curated art collection, every element has been thoughtfully chosen to create an atmosphere of serene sophistication.",
     pricingTiers: [
-      { rooms: 1, price: 50, label: "1 Room" },
-      { rooms: 2, price: 80, label: "2 Rooms" },
       { rooms: 3, price: 100, label: "Entire House" },
+      { rooms: 2, price: 80, label: "2 Rooms" },
+      { rooms: 1, price: 50, label: "1 Room" },
     ],
     totalRooms: 3,
     size: "85 m²",
