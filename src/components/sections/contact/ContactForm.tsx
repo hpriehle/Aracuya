@@ -17,6 +17,7 @@ export function ContactForm() {
     const data = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
       subject: formData.get('subject') as string,
       message: formData.get('message') as string,
     };
@@ -93,6 +94,23 @@ export function ContactForm() {
           name="email"
           autoComplete="email"
           required
+          disabled={loading}
+          className="mt-2 w-full border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green disabled:opacity-50"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="phone"
+          className="block font-body text-xs font-medium uppercase tracking-widest text-black"
+        >
+          Phone
+        </label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          autoComplete="tel"
           disabled={loading}
           className="mt-2 w-full border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green disabled:opacity-50"
         />
