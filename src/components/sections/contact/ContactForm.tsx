@@ -5,10 +5,40 @@ import { Button } from "@/components/ui/Button";
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+    };
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setError('Failed to send message. Please try emailing us directly.');
+      console.error('Form submission error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -26,6 +56,12 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="rounded bg-red-50 p-4 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
       <div>
         <label
           htmlFor="name"
@@ -39,7 +75,8 @@ export function ContactForm() {
           name="name"
           autoComplete="name"
           required
-          className="mt-2 w-full border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green"
+          disabled={loading}
+          className="mt-2 w-full border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green disabled:opacity-50"
         />
       </div>
 
@@ -56,7 +93,8 @@ export function ContactForm() {
           name="email"
           autoComplete="email"
           required
-          className="mt-2 w-full border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green"
+          disabled={loading}
+          className="mt-2 w-full border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green disabled:opacity-50"
         />
       </div>
 
@@ -70,12 +108,13 @@ export function ContactForm() {
         <select
           id="subject"
           name="subject"
-          className="mt-2 w-full appearance-none border-b border-gray-light bg-transparent bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236B6B6B%22%20stroke-width%3D%222%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_4px_center] bg-no-repeat px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green"
+          disabled={loading}
+          className="mt-2 w-full appearance-none border-b border-gray-light bg-transparent bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236B6B6B%22%20stroke-width%3D%222%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_4px_center] bg-no-repeat px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green disabled:opacity-50"
         >
-          <option value="reservation">Reservation Inquiry</option>
-          <option value="general">General Inquiry</option>
-          <option value="events">Events</option>
-          <option value="other">Other</option>
+          <option value="Reservation Inquiry">Reservation Inquiry</option>
+          <option value="General Inquiry">General Inquiry</option>
+          <option value="Events">Events</option>
+          <option value="Other">Other</option>
         </select>
       </div>
 
@@ -91,12 +130,15 @@ export function ContactForm() {
           name="message"
           rows={5}
           required
-          className="mt-2 w-full resize-none border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green"
+          disabled={loading}
+          className="mt-2 w-full resize-none border-b border-gray-light bg-transparent px-1 py-3 font-body text-body font-light text-black outline-none transition-colors focus:border-green disabled:opacity-50"
         />
       </div>
 
       <div className="pt-4">
-        <Button type="submit">Send Message</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Sending...' : 'Send Message'}
+        </Button>
       </div>
     </form>
   );
