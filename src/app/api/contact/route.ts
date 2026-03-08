@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     console.log('[Contact API] Attempting to send email...');
     const { data, error } = await resend.emails.send({
       from: 'Aracuya Contact Form <onboarding@resend.dev>',
-      to: "harrison@riehle.co",,
+      to: "harrison@riehle.co",
       replyTo: email,
       subject: `[Aracuya Contact] ${subject}`,
       html: `
