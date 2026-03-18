@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadedAt = useRef('');
+
+  useEffect(() => {
+    loadedAt.current = String(Date.now());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -20,6 +25,8 @@ export function ContactForm() {
       phone: formData.get('phone') as string,
       subject: formData.get('subject') as string,
       message: formData.get('message') as string,
+      _company: formData.get('_company') as string,
+      _t: formData.get('_t') as string,
     };
 
     try {
@@ -57,6 +64,13 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Honeypot — invisible to humans, bots fill it */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <label htmlFor="_company">Company</label>
+        <input type="text" id="_company" name="_company" tabIndex={-1} autoComplete="off" />
+      </div>
+      <input type="hidden" name="_t" value={loadedAt.current} />
+
       {error && (
         <div className="rounded bg-red-50 p-4 text-sm text-red-600">
           {error}
