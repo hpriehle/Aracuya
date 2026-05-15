@@ -24,18 +24,18 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://aracuya.com"),
   title: {
-    default: "Aracuya | Luxury Boutique Hotel in Paradise Valley",
+    default: "Aracuya | Floating Villa near Nzulezu, Ghana",
     template: "%s | Aracuya",
   },
   description:
-    "Experience refined luxury at Aracuya — a boutique hotel in Paradise Valley, Arizona. Three beautifully appointed rooms, curated experiences, and the art of unhurried living.",
+    "Ghana's largest floating villa — a luxurious 3-bedroom over-water retreat near Nzulezu in the Western Region. Book directly for the best rate.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Aracuya | Luxury Boutique Hotel in Paradise Valley",
+    title: "Aracuya | Floating Villa near Nzulezu, Ghana",
     description:
-      "Experience refined luxury at Aracuya — a boutique hotel in Paradise Valley, Arizona. Three beautifully appointed rooms, curated experiences, and the art of unhurried living.",
+      "A luxurious over-water villa on stilts near Nzulezu. Three bedrooms, three baths, sweeping views — Ghana's largest floating villa, in the Western Region.",
     type: "website",
     locale: "en_US",
     siteName: "Aracuya",
@@ -44,15 +44,15 @@ export const metadata: Metadata = {
         url: "/images/hero/main.jpg",
         width: 1200,
         height: 630,
-        alt: "Aracuya Luxury Hotel",
+        alt: "Aracuya floating villa near Nzulezu, Ghana",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aracuya | Luxury Boutique Hotel in Paradise Valley",
+    title: "Aracuya | Floating Villa near Nzulezu, Ghana",
     description:
-      "Experience refined luxury at Aracuya — a boutique hotel in Paradise Valley, Arizona. Three beautifully appointed rooms, curated experiences, and the art of unhurried living.",
+      "A luxurious over-water villa on stilts near Nzulezu — Ghana's largest floating villa, in the Western Region.",
     images: ["/images/hero/main.jpg"],
   },
 };
@@ -67,23 +67,16 @@ export default function RootLayout({
     "@type": "Hotel",
     name: "Aracuya",
     description:
-      "Experience refined luxury at Aracuya — a boutique hotel in Paradise Valley, Arizona. Three beautifully appointed rooms, curated experiences, and the art of unhurried living.",
+      "Ghana's largest floating villa — a luxurious 3-bedroom over-water retreat near Nzulezu in the Western Region. Book directly for the best rate.",
     url: "https://aracuya.com",
     telephone: "+233597957528",
     email: "info@aracuya.com",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "123 Tranquility Lane",
-      addressLocality: "Paradise Valley",
-      addressRegion: "AZ",
-      postalCode: "85253",
-      addressCountry: "US",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 33.7311,
-      longitude: -111.9431,
+      addressLocality: "Beyin",
+      addressRegion: "Western Region",
+      addressCountry: "GH",
     },
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Free Wi-Fi" },

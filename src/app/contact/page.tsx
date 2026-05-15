@@ -4,30 +4,30 @@ import { FadeIn } from "@/components/animation/FadeIn";
 import { ContactForm } from "@/components/sections/contact/ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact Us",
+  title: { absolute: "Contact | Aracuya Floating Villa, Beyin, Ghana" },
   description:
-    "Get in touch with Aracuya. Whether planning a stay or simply curious, our team is here to help. Book your luxury getaway in Paradise Valley, Arizona.",
+    "Reach the Aracuya team to plan your stay near Nzulezu in Ghana's Western Region. WhatsApp, phone, and email available.",
   alternates: {
     canonical: "/contact",
   },
   openGraph: {
-    title: "Contact Us | Aracuya",
+    title: "Contact | Aracuya Floating Villa, Beyin, Ghana",
     description:
-      "Get in touch with Aracuya. Whether planning a stay or simply curious, our team is here to help. Book your luxury getaway in Paradise Valley, Arizona.",
+      "Reach the Aracuya team to plan your stay near Nzulezu in Ghana's Western Region. WhatsApp, phone, and email available.",
     images: [
       {
         url: "/images/hero/main.jpg",
         width: 1200,
         height: 630,
-        alt: "Aracuya Luxury Hotel",
+        alt: "Aracuya floating villa near Nzulezu, Ghana",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact Us | Aracuya",
+    title: "Contact | Aracuya Floating Villa, Beyin, Ghana",
     description:
-      "Get in touch with Aracuya. Whether planning a stay or simply curious, our team is here to help. Book your luxury getaway in Paradise Valley, Arizona.",
+      "Reach the Aracuya team to plan your stay near Nzulezu in Ghana's Western Region. WhatsApp, phone, and email available.",
     images: ["/images/hero/main.jpg"],
   },
 };
@@ -68,9 +68,9 @@ export default function ContactPage() {
                     Address
                   </h2>
                   <p className="mt-3 font-body text-body font-light leading-relaxed text-gray">
-                    123 Tranquility Lane
+                    Beyin
                     <br />
-                    Paradise Valley, AZ 85253
+                    Western Region, Ghana
                   </p>
                 </div>
 

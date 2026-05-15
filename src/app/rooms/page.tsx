@@ -7,30 +7,30 @@ import { Button } from "@/components/ui/Button";
 import { rooms } from "@/data/rooms";
 
 export const metadata: Metadata = {
-  title: "Rooms & Booking",
+  title: { absolute: "Rooms & Rates | Aracuya Floating Villa, Ghana" },
   description:
-    "Explore our beautifully appointed rooms at Aracuya. Book one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+    "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵775/night. Reserve direct at Aracuya.",
   alternates: {
     canonical: "/rooms",
   },
   openGraph: {
-    title: "Rooms & Booking | Aracuya",
+    title: "Rooms & Rates | Aracuya Floating Villa, Ghana",
     description:
-      "Explore our beautifully appointed rooms at Aracuya. Book one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+      "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵775/night. Reserve direct at Aracuya.",
     images: [
       {
         url: "/images/rooms/suite/hero.jpg",
         width: 1200,
         height: 630,
-        alt: "Luxury room at Aracuya",
+        alt: "Aracuya floating villa near Nzulezu, Ghana",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rooms & Booking | Aracuya",
+    title: "Rooms & Rates | Aracuya Floating Villa, Ghana",
     description:
-      "Explore our beautifully appointed rooms at Aracuya. Book one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+      "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵775/night. Reserve direct at Aracuya.",
     images: ["/images/rooms/suite/hero.jpg"],
   },
 };

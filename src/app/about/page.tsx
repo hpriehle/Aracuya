@@ -5,30 +5,30 @@ import { Values } from "@/components/sections/about/Values";
 import { ContactCTA } from "@/components/sections/home/ContactCTA";
 
 export const metadata: Metadata = {
-  title: "Our Story",
+  title: { absolute: "About Aracuya | Over-Water Villa near Nzulezu" },
   description:
-    "Discover the story behind Aracuya. Founded on the belief that true hospitality lies in the details — a legacy of refined elegance, thoughtful design, and natural beauty since 2009.",
+    "Aracuya is a handcrafted floating villa near Nzulezu, the village on stilts. Built with local artisans, supporting the community that inspired it.",
   alternates: {
     canonical: "/about",
   },
   openGraph: {
-    title: "Our Story | Aracuya",
+    title: "About Aracuya | Over-Water Villa near Nzulezu",
     description:
-      "Discover the story behind Aracuya. Founded on the belief that true hospitality lies in the details — a legacy of refined elegance, thoughtful design, and natural beauty since 2009.",
+      "Aracuya is a handcrafted floating villa near Nzulezu, the village on stilts. Built with local artisans, supporting the community that inspired it.",
     images: [
       {
         url: "/images/about/hero.jpg",
         width: 1200,
         height: 630,
-        alt: "Aracuya hotel surrounded by natural landscape",
+        alt: "Aracuya floating villa near Nzulezu, Ghana",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Our Story | Aracuya",
+    title: "About Aracuya | Over-Water Villa near Nzulezu",
     description:
-      "Discover the story behind Aracuya. Founded on the belief that true hospitality lies in the details — a legacy of refined elegance, thoughtful design, and natural beauty since 2009.",
+      "Aracuya is a handcrafted floating villa near Nzulezu, the village on stilts. Built with local artisans, supporting the community that inspired it.",
     images: ["/images/about/hero.jpg"],
   },
 };

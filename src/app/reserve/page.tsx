@@ -5,20 +5,20 @@ import { BookingWidget } from "@/components/ui/BookingWidget";
 export const metadata: Metadata = {
   title: "Reserve",
   description:
-    "Book your stay at Aracuya. Choose one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+    "Book your stay at Aracuya. Choose one room, two, or the entire over-water villa near Nzulezu in Ghana's Western Region.",
   alternates: {
     canonical: "/reserve",
   },
   openGraph: {
     title: "Reserve | Aracuya",
     description:
-      "Book your stay at Aracuya. Choose one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+      "Book your stay at Aracuya. Choose one room, two, or the entire over-water villa near Nzulezu in Ghana's Western Region.",
     images: [
       {
         url: "/images/hero/main.jpg",
         width: 1200,
         height: 630,
-        alt: "Aracuya Luxury Hotel",
+        alt: "Aracuya floating villa near Nzulezu, Ghana",
       },
     ],
   },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Reserve | Aracuya",
     description:
-      "Book your stay at Aracuya. Choose one room, two, or take the entire house for a private retreat in Paradise Valley, Arizona.",
+      "Book your stay at Aracuya. Choose one room, two, or the entire over-water villa near Nzulezu in Ghana's Western Region.",
     images: ["/images/hero/main.jpg"],
   },
 };
