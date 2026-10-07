@@ -40,7 +40,7 @@ export function FeaturedRoom() {
               <div className="mt-6 flex items-baseline justify-center gap-1">
                 <span className="font-body text-small text-gray">From</span>
                 <span className="font-heading text-h2 font-light text-green">
-                  {formatPrice(room.pricingTiers[0].price)}
+                  {formatPrice(Math.min(...room.pricingTiers.map((t) => t.price)))}
                 </span>
                 <span className="font-body text-small text-gray">/ night</span>
               </div>

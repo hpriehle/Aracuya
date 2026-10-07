@@ -13,17 +13,18 @@ type Currency = "USD" | "GHS";
 interface CurrencyContextValue {
   currency: Currency;
   toggleCurrency: () => void;
-  formatPrice: (usdAmount: number) => string;
+  formatPrice: (ghsAmount: number) => string;
 }
 
-const FALLBACK_RATE = 15.5;
+// GHS per 1 USD. Prices are stored in GHS; USD is derived from this rate.
+const FALLBACK_RATE = 11.6;
 const CACHE_KEY = "aracuya_ghs_rate";
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 const CurrencyContext = createContext<CurrencyContextValue>({
-  currency: "USD",
+  currency: "GHS",
   toggleCurrency: () => {},
-  formatPrice: (usd) => `$${usd}`,
+  formatPrice: (ghs) => `GH₵${ghs}`,
 });
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
@@ -62,12 +63,12 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const formatPrice = useCallback(
-    (usdAmount: number) => {
-      if (currency === "USD") {
-        return `$${usdAmount}`;
+    (ghsAmount: number) => {
+      if (currency === "GHS") {
+        return `GH₵${ghsAmount.toLocaleString("en-US")}`;
       }
-      const converted = Math.round(usdAmount * rate);
-      return `GH₵${converted}`;
+      const converted = Math.round(ghsAmount / rate);
+      return `$${converted}`;
     },
     [currency, rate]
   );

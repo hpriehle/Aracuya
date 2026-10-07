@@ -9,14 +9,14 @@ import { rooms } from "@/data/rooms";
 export const metadata: Metadata = {
   title: { absolute: "Rooms & Rates | Aracuya Floating Villa, Ghana" },
   description:
-    "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵775/night. Reserve direct at Aracuya.",
+    "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵700/night. Reserve direct at Aracuya.",
   alternates: {
     canonical: "/rooms",
   },
   openGraph: {
     title: "Rooms & Rates | Aracuya Floating Villa, Ghana",
     description:
-      "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵775/night. Reserve direct at Aracuya.",
+      "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵700/night. Reserve direct at Aracuya.",
     images: [
       {
         url: "/images/rooms/suite/hero.jpg",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Rooms & Rates | Aracuya Floating Villa, Ghana",
     description:
-      "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵775/night. Reserve direct at Aracuya.",
+      "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵700/night. Reserve direct at Aracuya.",
     images: ["/images/rooms/suite/hero.jpg"],
   },
 };

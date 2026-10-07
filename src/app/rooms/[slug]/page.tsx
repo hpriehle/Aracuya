@@ -119,8 +119,8 @@ export default async function RoomPage({ params }: RoomPageProps) {
     },
     offers: {
       "@type": "Offer",
-      priceCurrency: "USD",
-      price: room.pricingTiers[0].price,
+      priceCurrency: "GHS",
+      price: Math.min(...room.pricingTiers.map((t) => t.price)),
       url: `https://aracuya.com/rooms/${room.slug}`,
     },
   };
