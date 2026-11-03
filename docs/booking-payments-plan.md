@@ -144,4 +144,4 @@ Netlify site `aracuya` deploys from GitHub `hpriehle/Aracuya`, branch `main`. As
 4. **Resend:** verify a sending domain and set `BOOKING_EMAIL_FROM`, so guests get Aracuya's own confirmation emails.
 5. **Deploy:** merge the PR to `main`.
 6. **Smoke test:** make one real 1-room card booking, check the calendar event and the emails, then refund it in Stripe and delete the event.
-7. **MoMo later:** once MTN Ghana issues live Collections keys, add `MOMO_ENVIRONMENT=mtnghana`, the keys and `NEXT_PUBLIC_MOMO_MODE=live`, re-run the production push and redeploy.
+7. **MoMo later:** once MTN Ghana issues live Collections keys, add `MOMO_ENVIRONMENT=mtnghana`, the keys and `NEXT_PUBLIC_MOMO_MODE=live`, re-run the production push and redeploy. Create the live API user with the site's domain as its callback host (`providerCallbackHost`); MTN refuses callbacks to any other host (`INVALID_CALLBACK_URL_HOST`), and the sandbox user copied from Abeiku is registered to Abeiku's host, so the preview runs on polling alone.
