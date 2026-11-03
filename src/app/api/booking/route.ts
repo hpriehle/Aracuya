@@ -1,9 +1,12 @@
 // POST /api/booking — validate, price, hold the dates, start payment.
 //
-// Body: { rooms, checkIn, checkOut, name, email, phone, guests, method, website }
-//   method:  "card" (Stripe, cards issued outside Ghana) | "momo" (not yet)
-//   website: honeypot, must be empty
-// Response: { url } — redirect the browser there to pay.
+// Body: { rooms, checkIn, checkOut, name, email, phone, guests, method, momoNumber, website }
+//   method:     "card" (Stripe, cards issued outside Ghana) | "momo" (MTN Mobile Money)
+//   momoNumber: the MTN wallet to charge (method "momo" only)
+//   website:    honeypot, must be empty
+// Response:
+//   card → { url }                     redirect the browser there to pay
+//   momo → { momo: { bookingId, eventId } }  poll GET /api/booking/status
 
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,17 +21,27 @@ import {
   releaseHold,
   type BookingDetails,
 } from "@/lib/booking/calendar";
-import { QuoteError, ghsToUsdCents, getGhsPerUsd, quote } from "@/lib/booking/pricing";
+import { QuoteError, ghsToUsdCents, getGhsPerUsd, quote, type Quote } from "@/lib/booking/pricing";
 import {
   CHECKOUT_MINUTES,
-  HOLD_MINUTES,
+  HOLD_MINUTES as CARD_HOLD_MINUTES,
   StripeNotConfiguredError,
   getStripe,
+  isStripeTestMode,
 } from "@/lib/payments/stripe";
+import {
+  MomoNotConfiguredError,
+  isMomoSandbox,
+  isMtnGhanaNumber,
+  normalizeMsisdn,
+  requestToPay,
+} from "@/lib/payments/momo";
 
 export const dynamic = "force-dynamic";
 
 const property = roomData[0];
+/** MTN prompts expire after a few minutes; give the guest a little slack. */
+const MOMO_HOLD_MINUTES = 10;
 
 // Best-effort per-instance rate limit: each attempt holds real dates.
 const attempts = new Map<string, number[]>();
@@ -77,7 +90,7 @@ export async function POST(request: NextRequest) {
   if (!/^\+?[\d\s()-]{7,20}$/.test(phone)) return fail(400, "Please enter a valid phone number");
 
   // Price (server-side only)
-  let q;
+  let q: Quote;
   try {
     q = quote(body.rooms, body.checkIn, body.checkOut);
   } catch (err) {
@@ -89,16 +102,22 @@ export async function POST(request: NextRequest) {
     return fail(400, `${q.tier.label} sleeps up to ${maxGuests} guests`);
   }
 
-  if (body.method === "momo") {
-    return fail(400, "Mobile Money payments are coming soon. Please book on WhatsApp for now.");
+  // Payment method
+  const method = body.method;
+  if (method !== "card" && method !== "momo") return fail(400, "Choose a payment method");
+  let msisdn: string | null = null;
+  if (method === "momo") {
+    msisdn = normalizeMsisdn(str(body.momoNumber, 30));
+    if (!msisdn) return fail(400, "Enter your MTN MoMo number, e.g. 024 123 4567");
+    if (!isMomoSandbox() && !isMtnGhanaNumber(msisdn)) {
+      return fail(
+        400,
+        "That isn't an MTN number (MTN numbers start 024, 025, 053, 054, 055 or 059). For Telecel or AirtelTigo, please book on WhatsApp."
+      );
+    }
   }
-  if (body.method !== "card") return fail(400, "Choose a payment method");
 
   try {
-    const stripe = getStripe();
-    const ghsPerUsd = await getGhsPerUsd();
-    const usdCents = ghsToUsdCents(q.totalGhs, ghsPerUsd);
-
     const free = await getFreeRooms(q.checkIn, q.checkOut);
     if (!rangeFits(free, q.checkIn, q.checkOut, q.tier.rooms)) {
       return fail(409, "Sorry, those dates are no longer available for that many rooms.");
@@ -115,75 +134,117 @@ export async function POST(request: NextRequest) {
       guestPhone: phone,
       guests,
       totalGhs: q.totalGhs,
-      provider: "stripe",
+      provider: method === "card" ? "stripe" : "momo",
       referral: request.cookies.get("aracuya_ref")?.value,
     };
 
-    const eventId = await createHold(details, HOLD_MINUTES);
-
-    try {
-      const origin = request.nextUrl.origin;
-      const nightsLabel = `${q.nights} night${q.nights === 1 ? "" : "s"}`;
-      const metadata = {
-        bookingId: details.bookingId,
-        eventId,
-        rooms: String(details.rooms),
-        roomsLabel: details.roomsLabel,
-        checkIn: q.checkIn,
-        checkOut: q.checkOut,
-        nights: String(q.nights),
-        totalGhs: String(q.totalGhs),
-        ghsPerUsd: String(ghsPerUsd),
-        guestName: name,
-        guestPhone: phone,
-        guests: String(guests),
-        ...(details.referral ? { referral: details.referral.slice(0, 60) } : {}),
-      };
-
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["card"],
-        customer_email: email,
-        client_reference_id: details.bookingId,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: "usd",
-              unit_amount: usdCents,
-              product_data: {
-                name: `Aracuya · ${q.tier.label} · ${nightsLabel}`,
-                description: `${q.checkIn} to ${q.checkOut} · GH₵${q.totalGhs.toLocaleString("en-US")} at ${ghsPerUsd.toFixed(2)} GHS/USD`,
-              },
-            },
-          },
-        ],
-        metadata,
-        payment_intent_data: {
-          metadata,
-          receipt_email: email,
-          description: `Aracuya booking ${details.bookingId}`,
-        },
-        expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60,
-        success_url: `${origin}/reserve/confirmed?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/api/booking/cancel?b=${details.bookingId}&e=${eventId}`,
-      });
-
-      await attachPaymentRef(eventId, session.id);
-      return NextResponse.json({ url: session.url });
-    } catch (err) {
-      await releaseHold(eventId).catch(() => {});
-      throw err;
+    if (method === "momo") {
+      return await startMomo(request, details, q, msisdn!);
     }
+    return await startCard(request, details, q, email, name, phone, guests);
   } catch (err) {
     if (err instanceof SoldOutError) {
       return fail(409, "Sorry, someone just booked those dates. Please choose others.");
     }
-    if (err instanceof CalendarNotConfiguredError || err instanceof StripeNotConfiguredError) {
+    if (
+      err instanceof CalendarNotConfiguredError ||
+      err instanceof StripeNotConfiguredError ||
+      err instanceof MomoNotConfiguredError
+    ) {
       console.error("[booking] not configured:", (err as Error).message);
       return fail(503, "Online booking is temporarily unavailable. Please book on WhatsApp.");
     }
     console.error("[booking] failed:", err);
     return fail(502, "Something went wrong starting payment. Please try again or book on WhatsApp.");
+  }
+}
+
+async function startCard(
+  request: NextRequest,
+  details: BookingDetails,
+  q: Quote,
+  email: string,
+  name: string,
+  phone: string,
+  guests: number
+) {
+  const stripe = getStripe();
+  const ghsPerUsd = await getGhsPerUsd();
+  const usdCents = ghsToUsdCents(q.totalGhs, ghsPerUsd);
+  const eventId = await createHold(details, CARD_HOLD_MINUTES, isStripeTestMode());
+
+  try {
+    const origin = request.nextUrl.origin;
+    const nightsLabel = `${q.nights} night${q.nights === 1 ? "" : "s"}`;
+    const metadata = {
+      bookingId: details.bookingId,
+      eventId,
+      rooms: String(details.rooms),
+      roomsLabel: details.roomsLabel,
+      checkIn: q.checkIn,
+      checkOut: q.checkOut,
+      nights: String(q.nights),
+      totalGhs: String(q.totalGhs),
+      ghsPerUsd: String(ghsPerUsd),
+      guestName: name,
+      guestPhone: phone,
+      guests: String(guests),
+      ...(details.referral ? { referral: details.referral.slice(0, 60) } : {}),
+    };
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: email,
+      client_reference_id: details.bookingId,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: usdCents,
+            product_data: {
+              name: `Aracuya · ${q.tier.label} · ${nightsLabel}`,
+              description: `${q.checkIn} to ${q.checkOut} · GH₵${q.totalGhs.toLocaleString("en-US")} at ${ghsPerUsd.toFixed(2)} GHS/USD`,
+            },
+          },
+        },
+      ],
+      metadata,
+      payment_intent_data: {
+        metadata,
+        receipt_email: email,
+        description: `Aracuya booking ${details.bookingId}`,
+      },
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60,
+      success_url: `${origin}/reserve/confirmed?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/api/booking/cancel?b=${details.bookingId}&e=${eventId}`,
+    });
+
+    await attachPaymentRef(eventId, session.id);
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    await releaseHold(eventId).catch(() => {});
+    throw err;
+  }
+}
+
+async function startMomo(request: NextRequest, details: BookingDetails, q: Quote, msisdn: string) {
+  const eventId = await createHold(details, MOMO_HOLD_MINUTES, isMomoSandbox());
+  try {
+    const nightsLabel = `${q.nights} night${q.nights === 1 ? "" : "s"}`;
+    const referenceId = await requestToPay({
+      amountGhs: q.totalGhs,
+      msisdn,
+      externalId: details.bookingId,
+      payerMessage: `Aracuya ${details.roomsLabel}, ${nightsLabel} (${details.bookingId})`,
+      payeeNote: `Booking ${details.bookingId} ${q.checkIn} to ${q.checkOut}`,
+      callbackUrl: `${request.nextUrl.origin}/api/momo/callback?b=${details.bookingId}&e=${eventId}`,
+    });
+    await attachPaymentRef(eventId, referenceId);
+    return NextResponse.json({ momo: { bookingId: details.bookingId, eventId } });
+  } catch (err) {
+    await releaseHold(eventId).catch(() => {});
+    throw err;
   }
 }

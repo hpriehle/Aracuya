@@ -14,9 +14,9 @@
 //                            (also the default in dev when Google isn't configured)
 //   BOOKING_CALENDAR_WRITES=on|off
 //                         Whether holds/bookings are written to the real calendar.
-//                         Default: on only when Stripe uses a live key, so test
-//                         payments never block real dates. When off, writes go to
-//                         an in-memory calendar that availability still reads.
+//                         Default: real payments yes, test payments (Stripe test
+//                         mode, MoMo sandbox) no, so testing never blocks real
+//                         dates. In-memory bookings still count in availability.
 
 import { randomUUID } from "node:crypto";
 import { google, type calendar_v3 } from "googleapis";
@@ -57,13 +57,17 @@ export function isMockCalendar(): boolean {
   return !getConfig() && process.env.NODE_ENV !== "production";
 }
 
-/** Whether holds and bookings go to the real Google Calendar. */
-export function calendarWritesEnabled(): boolean {
+/**
+ * Whether a booking goes to the real Google Calendar. Test payments
+ * (Stripe test mode, MoMo sandbox) stay in memory unless
+ * BOOKING_CALENDAR_WRITES=on; BOOKING_CALENDAR_WRITES=off keeps everything in memory.
+ */
+function writesToGoogle(testPayment: boolean): boolean {
   if (isMockCalendar()) return false;
   const flag = process.env.BOOKING_CALENDAR_WRITES;
   if (flag === "on") return true;
   if (flag === "off") return false;
-  return process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ?? false;
+  return !testPayment;
 }
 
 let client: calendar_v3.Calendar | null = null;
@@ -226,8 +230,11 @@ function bookingDescription(d: BookingDetails, extra: string[] = []): string {
   ].join("\n");
 }
 
-async function insertEvent(event: calendar_v3.Schema$Event): Promise<calendar_v3.Schema$Event> {
-  if (!calendarWritesEnabled()) {
+async function insertEvent(
+  event: calendar_v3.Schema$Event,
+  testPayment: boolean
+): Promise<calendar_v3.Schema$Event> {
+  if (!writesToGoogle(testPayment)) {
     const stored = { ...event, id: randomUUID().replace(/-/g, ""), created: new Date().toISOString() };
     memoryEvents.set(stored.id, stored);
     return stored;
@@ -237,8 +244,11 @@ async function insertEvent(event: calendar_v3.Schema$Event): Promise<calendar_v3
   return res.data;
 }
 
+// Reads/updates go to wherever the event was created: memory first, then Google.
+
 export async function getEvent(eventId: string): Promise<calendar_v3.Schema$Event | null> {
-  if (!calendarWritesEnabled()) return memoryEvents.get(eventId) ?? null;
+  if (memoryEvents.has(eventId)) return memoryEvents.get(eventId)!;
+  if (isMockCalendar() || !/^[a-v0-9]{5,1024}$/.test(eventId)) return null;
   const { calendar, calendarId } = getClient();
   try {
     const res = await calendar.events.get({ calendarId, eventId });
@@ -252,9 +262,9 @@ export async function getEvent(eventId: string): Promise<calendar_v3.Schema$Even
 }
 
 async function patchEvent(eventId: string, patch: calendar_v3.Schema$Event): Promise<void> {
-  if (!calendarWritesEnabled()) {
-    const current = memoryEvents.get(eventId);
-    if (current) memoryEvents.set(eventId, { ...current, ...patch });
+  const current = memoryEvents.get(eventId);
+  if (current) {
+    memoryEvents.set(eventId, { ...current, ...patch });
     return;
   }
   const { calendar, calendarId } = getClient();
@@ -262,10 +272,7 @@ async function patchEvent(eventId: string, patch: calendar_v3.Schema$Event): Pro
 }
 
 async function deleteEvent(eventId: string): Promise<void> {
-  if (!calendarWritesEnabled()) {
-    memoryEvents.delete(eventId);
-    return;
-  }
+  if (memoryEvents.delete(eventId)) return;
   const { calendar, calendarId } = getClient();
   try {
     await calendar.events.delete({ calendarId, eventId });
@@ -280,7 +287,11 @@ async function deleteEvent(eventId: string): Promise<void> {
  * availability counting only events that existed before it; if two guests
  * raced for the last room, the later hold is removed and SoldOutError thrown.
  */
-export async function createHold(d: BookingDetails, holdMinutes: number): Promise<string> {
+export async function createHold(
+  d: BookingDetails,
+  holdMinutes: number,
+  testPayment: boolean
+): Promise<string> {
   const expiresAt = new Date(Date.now() + holdMinutes * 60_000).toISOString();
   const props: BookingProps = {
     source: "aracuya-site",
@@ -308,7 +319,7 @@ export async function createHold(d: BookingDetails, holdMinutes: number): Promis
     transparency: "opaque",
     colorId: "5", // yellow: pending
     extendedProperties: { private: props },
-  });
+  }, testPayment);
   const holdId = hold.id!;
   const holdCreated = hold.created ?? new Date().toISOString();
 

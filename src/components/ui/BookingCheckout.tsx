@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { rooms } from "@/data/rooms";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -19,6 +19,22 @@ interface BookingCheckoutProps {
 type Method = "card" | "momo";
 
 const property = rooms[0];
+/** "off" hides MoMo; "sandbox" enables it with MTN's test numbers. Set at build time. */
+const MOMO_MODE = process.env.NEXT_PUBLIC_MOMO_MODE ?? "off";
+const MOMO_ENABLED = MOMO_MODE === "sandbox" || MOMO_MODE === "live";
+const POLL_MS = 4000;
+const POLL_LIMIT_MS = 6 * 60_000;
+
+interface MomoWait {
+  bookingId: string;
+  eventId: string;
+  number: string;
+}
+
+/** MoMo always charges in cedis, whatever currency the site is showing. */
+function formatGhs(amount: number): string {
+  return `GH₵${amount.toLocaleString("en-US")}`;
+}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", {
@@ -48,9 +64,55 @@ export function BookingCheckout({
   const [phone, setPhone] = useState("");
   const [guests, setGuests] = useState(Math.min(2, maxGuests));
   const [method, setMethod] = useState<Method>("card");
+  const [momoNumber, setMomoNumber] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [momoWait, setMomoWait] = useState<MomoWait | null>(null);
+
+  // While waiting for MoMo approval, ask the server every few seconds.
+  useEffect(() => {
+    if (!momoWait) return;
+    let stopped = false;
+    const started = Date.now();
+    let timer: ReturnType<typeof setTimeout>;
+
+    async function poll() {
+      try {
+        const res = await fetch(
+          `/api/booking/status?b=${momoWait!.bookingId}&e=${momoWait!.eventId}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+        if (stopped) return;
+        if (data.status === "confirmed") {
+          window.location.assign(`/reserve/confirmed?b=${momoWait!.bookingId}&e=${momoWait!.eventId}`);
+          return;
+        }
+        if (data.status === "failed") {
+          setMomoWait(null);
+          setSubmitting(false);
+          setError(data.message ?? "The MoMo payment didn't go through. Nothing was charged.");
+          return;
+        }
+      } catch {
+        // Network blip: keep polling.
+      }
+      if (Date.now() - started > POLL_LIMIT_MS) {
+        setMomoWait(null);
+        setSubmitting(false);
+        setError("We didn't hear back from MTN in time. If you approved the payment, message us on WhatsApp and we'll confirm it.");
+        return;
+      }
+      timer = setTimeout(poll, POLL_MS);
+    }
+
+    timer = setTimeout(poll, POLL_MS);
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+  }, [momoWait]);
 
   const label = cn(
     "block font-body text-[10px] font-medium uppercase tracking-[0.2em]",
@@ -80,10 +142,15 @@ export function BookingCheckout({
           phone,
           guests,
           method,
+          momoNumber: method === "momo" ? momoNumber : undefined,
           website,
         }),
       });
       const data = await res.json().catch(() => ({}));
+      if (res.ok && data.momo) {
+        setMomoWait({ ...data.momo, number: momoNumber });
+        return;
+      }
       if (!res.ok || !data.url) {
         setError(data.error ?? "Something went wrong. Please try again.");
         setSubmitting(false);
@@ -129,6 +196,38 @@ export function BookingCheckout({
       </span>
     </label>
   );
+
+  if (momoWait) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        // The form is taller than this screen; bring the instructions into view.
+        ref={(el) => el?.scrollIntoView({ block: "center", behavior: "smooth" })}
+        className={cn("font-body", isDark ? "text-cream" : "text-black")}
+      >
+        <span className={label}>MTN Mobile Money</span>
+        <h3 className="mt-3 font-heading text-h3 font-light">Approve on your phone</h3>
+        <p className={cn("mt-3 text-small", isDark ? "text-cream/70" : "text-gray")}>
+          We&apos;ve sent a payment request for <strong>{formatGhs(totalGhs)}</strong> to{" "}
+          <strong>{momoWait.number}</strong>. Enter your MoMo PIN on your phone to confirm.
+        </p>
+        <p className={cn("mt-3 text-xs", isDark ? "text-cream/50" : "text-gray")}>
+          No prompt? Dial <strong>*170#</strong>, choose <strong>My Wallet</strong>, then{" "}
+          <strong>My Approvals</strong>.
+        </p>
+        <div className="mt-6 flex items-center gap-3 text-xs">
+          <span
+            className={cn(
+              "h-4 w-4 animate-spin rounded-full border-2 border-t-transparent",
+              isDark ? "border-cream/60" : "border-green"
+            )}
+          />
+          <span className={isDark ? "text-cream/60" : "text-gray"}>Waiting for approval… keep this page open.</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} noValidate={false}>
@@ -219,8 +318,35 @@ export function BookingCheckout({
             "Card issued outside Ghana",
             `Visa, Mastercard, Amex, Apple Pay · charged in USD (about $${approxUsd.toLocaleString("en-US")})`
           )}
-          {methodOption("momo", "MTN Mobile Money", "Coming soon", true)}
+          {methodOption(
+            "momo",
+            "MTN Mobile Money",
+            MOMO_ENABLED
+              ? `Pay ${formatGhs(totalGhs)} from your MTN wallet · approve with your PIN`
+              : "Coming soon",
+            !MOMO_ENABLED
+          )}
         </div>
+
+        {method === "momo" && (
+          <label className="mt-4 block">
+            <span className={label}>MTN MoMo number to charge</span>
+            <input
+              className={input}
+              required
+              type="tel"
+              inputMode="tel"
+              placeholder="024 123 4567"
+              value={momoNumber}
+              onChange={(e) => setMomoNumber(e.target.value)}
+            />
+            {MOMO_MODE === "sandbox" && (
+              <span className={cn("mt-1.5 block font-body text-[11px]", isDark ? "text-amber-200/70" : "text-amber-700")}>
+                Sandbox: any number succeeds. 46733123450 fails, 46733123451 is declined.
+              </span>
+            )}
+          </label>
+        )}
         <p className={cn("mt-3 font-body text-xs", isDark ? "text-cream/50" : "text-gray")}>
           Paying with a Ghana-issued card, Telecel Cash or AirtelTigo Money?{" "}
           <a
@@ -248,10 +374,16 @@ export function BookingCheckout({
           isDark ? "bg-cream text-black hover:bg-white" : "bg-green text-white hover:bg-green-light"
         )}
       >
-        {submitting ? "Holding your dates…" : "Continue to secure payment"}
+        {submitting
+          ? "Holding your dates…"
+          : method === "momo"
+            ? "Send MoMo payment request"
+            : "Continue to secure payment"}
       </button>
       <p className={cn("mt-3 text-center font-body text-[11px]", isDark ? "text-cream/40" : "text-gray")}>
-        You&apos;ll pay on Stripe&apos;s secure page. Your dates are held for 30 minutes.
+        {method === "momo"
+          ? "MTN will ask you to approve the payment on your phone. Your dates are held for 10 minutes."
+          : "You'll pay on Stripe's secure page. Your dates are held for 30 minutes."}
       </p>
     </form>
   );

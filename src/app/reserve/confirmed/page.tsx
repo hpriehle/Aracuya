@@ -2,7 +2,9 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { WHATSAPP_NUMBER } from "@/data/rooms";
-import { finalizeStripeSession, paidLabel } from "@/lib/booking/confirm";
+import { checkMomoBooking, finalizeStripeSession, paidLabel } from "@/lib/booking/confirm";
+import { getEvent } from "@/lib/booking/calendar";
+import { eachNight } from "@/lib/booking/availability";
 import { getStripe } from "@/lib/payments/stripe";
 
 export const metadata: Metadata = {
@@ -20,6 +22,30 @@ function formatDate(date: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+/** MoMo bookings: the widget redirects here with ?b=&e= once MTN confirms. */
+async function loadMomoBooking(bookingId: string, eventId: string) {
+  try {
+    const state = await checkMomoBooking(eventId, bookingId);
+    if (state.status !== "confirmed") return { paid: false as const };
+    const p = (await getEvent(eventId))?.extendedProperties?.private ?? {};
+    return {
+      paid: true as const,
+      confirmed: true,
+      bookingId: p.bookingId,
+      roomsLabel: p.roomsLabel,
+      checkIn: p.checkIn,
+      checkOut: p.checkOut,
+      nights: String(eachNight(p.checkIn, p.checkOut).length),
+      totalGhs: Number(p.totalGhs),
+      paid_label: p.paid ?? "MTN MoMo",
+      receiptNote: "MTN will send you an SMS receipt.",
+    };
+  } catch (err) {
+    console.error("[reserve/confirmed] momo", err);
+    return null;
+  }
 }
 
 async function loadBooking(sessionId: string | undefined) {
@@ -41,7 +67,7 @@ async function loadBooking(sessionId: string | undefined) {
       nights: m.nights,
       totalGhs: Number(m.totalGhs),
       paid_label: paidLabel(session),
-      email: session.customer_details?.email ?? session.customer_email ?? "",
+      receiptNote: `A receipt is on its way to ${session.customer_details?.email ?? session.customer_email ?? "your email"}.`,
     };
   } catch (err) {
     console.error("[reserve/confirmed]", err);
@@ -52,10 +78,11 @@ async function loadBooking(sessionId: string | undefined) {
 export default async function ConfirmedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ session_id?: string; b?: string; e?: string }>;
 }) {
-  const { session_id } = await searchParams;
-  const booking = await loadBooking(session_id);
+  const { session_id, b, e } = await searchParams;
+  const booking =
+    b && e && /^ARC-[0-9A-F]{8}$/.test(b) ? await loadMomoBooking(b, e) : await loadBooking(session_id);
 
   return (
     <section className="relative min-h-dvh w-full overflow-hidden">
@@ -84,7 +111,8 @@ export default async function ConfirmedPage({
                 {booking.confirmed
                   ? "Thank you. We've received your payment and blocked your dates."
                   : "Thank you. We've received your payment and are confirming your dates by hand. We'll message you on WhatsApp shortly."}
-                {booking.email && <> A receipt is on its way to {booking.email}.</>}
+                {" "}
+                {booking.receiptNote}
               </p>
 
               <dl className="my-6 space-y-3 border-y border-white/10 py-6 font-body text-small">
@@ -114,7 +142,7 @@ export default async function ConfirmedPage({
               </h1>
               <p className="mt-3 font-body text-small text-cream/70">
                 {booking
-                  ? "Your card wasn't charged and your dates weren't booked."
+                  ? "You weren't charged and your dates weren't booked."
                   : "If you were charged, message us and we'll sort it out right away."}
               </p>
             </>

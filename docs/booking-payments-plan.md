@@ -116,5 +116,10 @@ BOOKING_NOTIFY_EMAIL
    - Test-mode payments never write to the real calendar. Holds go to an in-memory calendar unless the Stripe key is live or `BOOKING_CALENDAR_WRITES=on`.
    - Guest confirmation emails need `BOOKING_EMAIL_FROM` on a domain verified in Resend. Until then only the owner email goes out, and guests get Stripe's receipt.
    - Paid with no hold (e.g. the hold was deleted by hand): sends an "ACTION NEEDED" email to the owner instead of guessing.
-4. MoMo in sandbox, then live once MTN keys are issued.
+4. ✅ MTN MoMo in sandbox (done 2026-11-03). Goes live once MTN issues live Collections keys.
+   - Guest picks "MTN Mobile Money", enters their MTN number, and approves the prompt with their PIN. The widget checks `/api/booking/status` every 4 seconds; holds last 10 minutes.
+   - Payment status always comes from MTN's API. MTN's callback (`/api/momo/callback`) is unsigned, so it only triggers a re-check and its body is ignored.
+   - MTN's firewall rejects some punctuation in payment messages (e.g. parentheses), so messages are reduced to letters, digits, spaces and hyphens.
+   - Live: `MOMO_ENVIRONMENT=mtnghana` (Abeiku uses `production`, which MTN doesn't accept as a target environment), live Collections keys, `NEXT_PUBLIC_MOMO_MODE=live`. Non-MTN numbers (Telecel, AirtelTigo) are rejected with a pointer to WhatsApp.
+   - Sandbox credentials were copied from Abeiku's `.env.local`.
 5. End-to-end tests: overlapping holds, expired hold, declined card, MoMo timeout, a manual calendar event blocking the whole house.
