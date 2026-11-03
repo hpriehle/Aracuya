@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { rangeFits } from "@/lib/booking/availability";
 import { WHATSAPP_NUMBER, rooms } from "@/data/rooms";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Calendar } from "@/components/ui/Calendar";
@@ -36,10 +37,20 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  // Free rooms per night, reported by the calendar as it loads months.
+  const [nights, setNights] = useState<Record<string, number>>({});
   const { formatPrice } = useCurrency();
   const calendarRef = useRef<HTMLDivElement>(null);
 
   const tier = property.pricingTiers[selectedTier];
+
+  const handleAvailability = useCallback((loaded: Record<string, number>) => {
+    setNights((prev) => ({ ...prev, ...loaded }));
+  }, []);
+
+  // Once dates are picked, an option is only offered if every night fits it.
+  const tierFits = (rooms: number) =>
+    !checkIn || !checkOut || rangeFits(nights, checkIn, checkOut, rooms);
   const isDark = variant === "dark";
 
   // Close calendar when clicking outside
@@ -92,12 +103,17 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
         </span>
 
         <div className="mt-3 flex gap-4 sm:gap-6">
-          {property.pricingTiers.map((t, i) => (
+          {property.pricingTiers.map((t, i) => {
+            const fits = tierFits(t.rooms);
+            return (
             <button
               key={t.rooms}
               onClick={() => setSelectedTier(i)}
+              disabled={!fits}
+              title={fits ? undefined : "Not available for these dates"}
               className={cn(
                 "border-b-2 pb-1 font-body text-small font-medium transition-all duration-200",
+                !fits && "cursor-not-allowed line-through opacity-40",
                 selectedTier === i
                   ? isDark
                     ? "border-cream text-cream"
@@ -112,7 +128,8 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
             >
               {t.label}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         <p className="mt-3">
@@ -209,6 +226,8 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
               onSelectCheckIn={setCheckIn}
               onSelectCheckOut={setCheckOut}
               onClose={() => setCalendarOpen(false)}
+              roomsNeeded={tier.rooms}
+              onAvailability={handleAvailability}
             />
           </div>
         )}

@@ -1,0 +1,115 @@
+# Direct booking + payments plan (Aracuya site)
+
+Status: draft, 2026-11-03. Build in the Aracuya site now and move it to Abeiku later.
+
+## Decisions made
+
+| Topic | Decision |
+|---|---|
+| Where | Aracuya Next.js site (`src/app/api/*`), deployed on Netlify. Paystack is not used for now. |
+| Payments | **Stripe** for cards issued outside Ghana. **MTN MoMo (direct Collections API)** for local payers. |
+| Calendar | Google Calendar is the source of truth. One event per booking, and each event records how many rooms it takes. |
+| Amount | Full amount upfront. A booking is confirmed only once it's paid. |
+| Stripe account | US-registered. Charges and payouts are in USD. |
+| Google auth | A service account that the Aracuya calendar is shared with. |
+| Airbnb | Airbnb syncs into the calendar, and every Airbnb block takes the whole house (the default rule below covers this). |
+| MTN live keys | Unknown. Harrison is checking the MTN MoMo developer portal. Until then: ship Stripe first, keep MoMo in sandbox. |
+
+## Current state
+
+- `BookingWidget.tsx` has the room selector (1 room / 2 rooms / Entire House), a date picker, and WhatsApp/Airbnb links. There's no checkout.
+- `Calendar.tsx` already fetches `/api/availability?start&end` and disables `bookedDates`, but **that route doesn't exist in this repo**, so nothing is ever blocked today.
+- Prices are stored in GHS (`src/data/rooms.ts`): 700 / 1,350 / 2,000 per night. `totalRooms` = 3. `CurrencyContext` converts to USD on the client with open.er-api.com.
+- Already installed: `stripe`, `googleapis`, `resend`. Env has Google OAuth client ID/secret and Resend.
+- Abeiku has MTN MoMo code that can be copied: `abeiku/src/lib/payments/momo.ts` (`requestPayment`, sandbox/prod switch, callback).
+
+## Guest flow
+
+1. **Dates + rooms**: the calendar greys out nights with 0 rooms free. After dates are picked, room options that don't fit are disabled (for example, "Entire House" is disabled if any night has a room booked).
+2. **Guest details**: name, email, WhatsApp/phone, number of guests.
+3. **Payment method**: guest chooses one:
+   - **"Card issued outside Ghana"** goes to Stripe, charged in USD.
+   - **"MTN Mobile Money"** goes to MoMo, charged in GHS.
+   - A small "Other / Ghana bank card / Telecel / AirtelTigo? Book on WhatsApp" link as the fallback.
+   - We don't show a list of card brands, because Ghana banks issue Visa and Mastercard too. The brand doesn't tell us which processor will accept the card.
+4. **Pay**:
+   - Stripe: Embedded Checkout session (handles 3DS, Apple Pay and Google Pay). If the guest cancels or the card is declined, the widget shows "Card not working? Pay with MTN MoMo".
+   - MoMo: we send a payment request to their number. The guest approves it on their phone with their PIN while the widget polls the booking status for up to about 3 minutes.
+5. **Confirmed**: the calendar event changes from hold to confirmed. A confirmation email goes to the guest and to Aracuya through Resend. The guest lands on `/booking/confirmed`.
+
+## Availability model (Google Calendar)
+
+- Each Aracuya booking is **one event** over `[check_in, check_out)` as an all-day event. Room count and metadata are stored in `extendedProperties.private`:
+  `{ source: "aracuya-site", rooms: "2", status: "hold" | "confirmed", bookingId, expiresAt, provider: "stripe" | "momo", paymentRef }`
+- The event title stays readable for staff, for example `Aracuya · 2 rooms · Jane Doe (paid)`.
+- **Rooms booked on a night** = the sum of `rooms` across events covering that night. **Free** = 3 minus that.
+- Events without our metadata (added by hand, synced from Airbnb, and so on) are read like this: a title such as "1 room" or "2 rooms" counts as that many, and **anything else blocks the whole house**. This is the safe default.
+- Holds:
+  - Starting checkout creates a `hold` event that expires after 15 minutes.
+  - Holds count toward availability until they expire.
+  - Expired holds are deleted lazily whenever availability is read. No cron is needed.
+- Race guard: after inserting a hold, re-read that date range. If the range is now overbooked, the newest hold loses and is deleted, and the guest is told the dates just sold.
+
+## Pricing and currency (server-side only)
+
+- The server recalculates the total from the room option and number of nights in `rooms.ts`. It never trusts a price sent by the browser.
+- MoMo charges the GHS total.
+- Stripe charges USD = GHS total ÷ rate. The rate is fetched on the server and fixed when the checkout session is created. The USD amount and the rate are shown to the guest before they pay, and both are saved on the event.
+
+## Files to add or change
+
+```
+src/lib/booking/pricing.ts        quote(roomsOption, checkIn, checkOut) → { ghs, usd, rate, nights }
+src/lib/booking/calendar.ts       getNightlyAvailability, createHold, confirmHold, releaseHold
+src/lib/payments/stripe.ts        createCheckoutSession (embedded), webhook verify
+src/lib/payments/momo.ts          ported from Abeiku: requestToPay + getStatus only (no disbursements)
+src/lib/booking/email.ts          guest + owner confirmation (Resend)
+
+src/app/api/availability/route.ts         GET → { nights: { "2026-12-01": 3, ... } } (free rooms per night)
+src/app/api/booking/route.ts              POST → validate, quote, hold, start payment → { bookingId, clientSecret | momoRef }
+src/app/api/booking/[id]/route.ts         GET status (widget polls for MoMo)
+src/app/api/stripe/webhook/route.ts       checkout.session.completed → confirm; expired → release
+src/app/api/momo/callback/route.ts        MTN callback → confirm/release (also confirmed by polling getStatus)
+src/app/booking/confirmed/page.tsx
+
+src/components/ui/Calendar.tsx      use free-rooms-per-night instead of bookedDates
+src/components/ui/BookingWidget.tsx  steps: dates/rooms → details → payment method → pay
+```
+
+`src/middleware.ts` already passes `/api` through, so webhook routes aren't affected.
+
+## Env vars to add
+
+```
+STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
+MOMO_ENVIRONMENT (sandbox | mtnghana), MOMO_COLLECTIONS_USER_ID, MOMO_COLLECTIONS_API_KEY, MOMO_COLLECTIONS_SUBSCRIPTION_KEY
+GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY, GOOGLE_BOOKING_CALENDAR_ID
+AIRBNB_ICAL_URL (optional; Airbnb export link, each event blocks the whole house)
+BOOKING_CALENDAR_MOCK=1 (optional; sample data, the default in dev without Google keys)
+BOOKING_NOTIFY_EMAIL
+```
+
+## Risks / open items
+
+1. **Going live with MTN MoMo is the slowest part.** The sandbox only works in EUR with test numbers. Production needs MTN Ghana business onboarding (a registered business plus KYC) to get live Collections keys, which can take weeks. Stripe and the calendar can ship first, with MoMo turned on once the keys arrive.
+2. **Gaps in MoMo-direct coverage.** Telecel Cash and AirtelTigo Money users, and Ghana bank-card holders, have no direct payment option. They can try Stripe (some Ghana cards work there) or use the WhatsApp fallback.
+3. **Google auth.** A service account that the Aracuya calendar is shared with (with "Make changes to events" permission) is the most reliable option. An OAuth refresh token from an app still in Google's "Testing" mode expires every 7 days.
+4. **Stripe decline rate on Ghana-issued cards.** Expected to be high. That's why the decline screen points to MoMo.
+5. **Cancellations and refunds.** These are done by hand in the Stripe dashboard or MTN for V1. A written cancellation policy should appear at checkout.
+6. **Move to Abeiku later.** The `src/lib/booking/*` and `src/lib/payments/*` modules are written to be portable. In Abeiku, the calendar event plus the payment reference become a `bookings` row.
+
+## Calendar facts found during setup (2026-11-03)
+
+- Staff enter direct bookings by hand as midnight-to-midnight timed events titled e.g. "1 room booked" (one event per night). The parser handles these.
+- The calendar subscribes to Airbnb, VRBO and Booking.com iCal feeds. Subscribed calendars can't be shared with a service account, so the server reads the feeds directly (`BLOCKING_ICAL_URLS`). Each feed event blocks the whole house.
+- Untitled or other events (e.g. "Tentative Oba Tours") block the whole house, even if they're tentative.
+- **Open item:** check that Airbnb, VRBO and Booking.com each import the Aracuya Villas calendar's secret iCal address. Without that, a booking made on the site won't block those platforms.
+- **Open item:** Netlify functions have a 4 KB limit on total env vars, and the private key is about 1.7 KB. Check the total when adding these to Netlify.
+
+## Build order
+
+1. ✅ Availability API + calendar room counting (done 2026-11-03: `src/lib/booking/availability.ts`, `calendar.ts`, `/api/availability`, widget + calendar wired). Live against the real calendar in local dev: service account `booking-site@aracuya-booking.iam.gserviceaccount.com` (Google Cloud project `aracuya-booking`, owned by aracuyagh@gmail.com) has "Make changes and see all event details" on the Aracuya Villas calendar (`aracuyagh@gmail.com`). Values are in `.env.local`; they still need adding to Netlify.
+2. Widget steps + server pricing.
+3. Stripe Embedded Checkout + webhook + confirmation email (test mode, then live).
+4. MoMo in sandbox, then live once MTN keys are issued.
+5. End-to-end tests: overlapping holds, expired hold, declined card, MoMo timeout, a manual calendar event blocking the whole house.
