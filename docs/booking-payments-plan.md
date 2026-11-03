@@ -123,3 +123,25 @@ BOOKING_NOTIFY_EMAIL
    - Live: `MOMO_ENVIRONMENT=mtnghana` (Abeiku uses `production`, which MTN doesn't accept as a target environment), live Collections keys, `NEXT_PUBLIC_MOMO_MODE=live`. Non-MTN numbers (Telecel, AirtelTigo) are rejected with a pointer to WhatsApp.
    - Sandbox credentials were copied from Abeiku's `.env.local`.
 5. End-to-end tests: overlapping holds, expired hold, declined card, MoMo timeout, a manual calendar event blocking the whole house.
+
+## Go-live checklist (prepared 2026-11-03)
+
+Netlify site `aracuya` deploys from GitHub `hpriehle/Aracuya`, branch `main`. As of 2026-11-03 it has **no environment variables**, so the live contact form probably can't send email (`RESEND_API_KEY` is missing).
+
+`scripts/push-netlify-env.sh` copies the booking variables from an env file to Netlify without printing them. `preview` writes to the deploy-preview and branch-deploy contexts. `production` refuses Stripe test keys and turns MoMo off until it's live. Without the unused Supabase, JWT and WhatsApp entries, the variables total about 2.5 KB, under Netlify's 4 KB function limit.
+
+### Stage 1: test on a real HTTPS preview (test keys)
+1. Push `booking-payments` and open a PR. Netlify builds `deploy-preview-<n>--aracuya.netlify.app`.
+2. Make a separate Google calendar, e.g. "Aracuya booking tests", and share it with the service account. On the serverless preview, in-memory test bookings aren't shared between function instances, so preview testing needs a real calendar. Using a test calendar keeps the real one clean. For the preview contexts only, set `GOOGLE_BOOKING_CALENDAR_ID` to the test calendar and `BOOKING_CALENDAR_WRITES=on`.
+3. `bash scripts/push-netlify-env.sh preview`, then redeploy the preview.
+4. Stripe test mode → Webhooks → endpoint `https://deploy-preview-<n>--aracuya.netlify.app/api/stripe/webhook` (events `checkout.session.completed`, `checkout.session.expired`). Save its secret with `bash scripts/set-stripe-keys.sh --webhook`, then push the preview env again.
+5. Test the card (4242), a card cancel, MoMo success/decline, and the MTN callback (it works over HTTPS).
+
+### Stage 2: production
+1. **Stripe:** change the public business name from "Automaddie" to Aracuya (or use a separate Stripe account). Optionally turn off Link's bank payments. Create the live webhook `https://aracuya.com/api/stripe/webhook`.
+2. **Live values:** put them in `.env.production.local` (git-ignored): `sk_live_` key, live webhook secret, the real calendar ID, the booking-site feeds, Resend, `BOOKING_NOTIFY_EMAIL`. Then run `bash scripts/push-netlify-env.sh production .env.production.local`.
+3. **Booking platforms:** Airbnb, VRBO and Booking.com each need to import the Aracuya Villas calendar's secret iCal address.
+4. **Resend:** verify a sending domain and set `BOOKING_EMAIL_FROM`, so guests get Aracuya's own confirmation emails.
+5. **Deploy:** merge the PR to `main`.
+6. **Smoke test:** make one real 1-room card booking, check the calendar event and the emails, then refund it in Stripe and delete the event.
+7. **MoMo later:** once MTN Ghana issues live Collections keys, add `MOMO_ENVIRONMENT=mtnghana`, the keys and `NEXT_PUBLIC_MOMO_MODE=live`, re-run the production push and redeploy.
