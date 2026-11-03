@@ -109,7 +109,12 @@ BOOKING_NOTIFY_EMAIL
 ## Build order
 
 1. ✅ Availability API + calendar room counting (done 2026-11-03: `src/lib/booking/availability.ts`, `calendar.ts`, `/api/availability`, widget + calendar wired). Live against the real calendar in local dev: service account `booking-site@aracuya-booking.iam.gserviceaccount.com` (Google Cloud project `aracuya-booking`, owned by aracuyagh@gmail.com) has "Make changes and see all event details" on the Aracuya Villas calendar (`aracuyagh@gmail.com`). Values are in `.env.local`; they still need adding to Netlify.
-2. Widget steps + server pricing.
-3. Stripe Embedded Checkout + webhook + confirmation email (test mode, then live).
+2. ✅ Widget steps + server pricing (done 2026-11-03).
+3. ✅ Stripe Checkout + webhook + confirmation emails, built 2026-11-03. Waiting on Stripe keys to test end to end.
+   - Uses **hosted** Checkout (a redirect) instead of Embedded, so no new npm packages are needed. It handles 3DS, Apple Pay and Google Pay the same way.
+   - Stripe sessions must stay open at least 30 minutes, so holds last **35 minutes** (not 15). The session always expires before its hold.
+   - Test-mode payments never write to the real calendar. Holds go to an in-memory calendar unless the Stripe key is live or `BOOKING_CALENDAR_WRITES=on`.
+   - Guest confirmation emails need `BOOKING_EMAIL_FROM` on a domain verified in Resend. Until then only the owner email goes out, and guests get Stripe's receipt.
+   - Paid with no hold (e.g. the hold was deleted by hand): sends an "ACTION NEEDED" email to the owner instead of guessing.
 4. MoMo in sandbox, then live once MTN keys are issued.
 5. End-to-end tests: overlapping holds, expired hold, declined card, MoMo timeout, a manual calendar event blocking the whole house.
