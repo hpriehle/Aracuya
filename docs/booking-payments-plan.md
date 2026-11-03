@@ -132,7 +132,7 @@ Netlify site `aracuya` deploys from GitHub `hpriehle/Aracuya`, branch `main`. As
 
 ### Stage 1: test on a real HTTPS preview (test keys)
 1. Push `booking-payments` and open a PR. Netlify builds `deploy-preview-<n>--aracuya.netlify.app`.
-2. Make a separate Google calendar, e.g. "Aracuya booking tests", and share it with the service account. On the serverless preview, in-memory test bookings aren't shared between function instances, so preview testing needs a real calendar. Using a test calendar keeps the real one clean. For the preview contexts only, set `GOOGLE_BOOKING_CALENDAR_ID` to the test calendar and `BOOKING_CALENDAR_WRITES=on`.
+2. Make a separate Google calendar, e.g. "Aracuya booking tests", and share it with the service account. On the serverless preview, in-memory test bookings aren't shared between function instances, so preview testing needs a real calendar. Using a test calendar keeps the real one clean. For the preview contexts only, the test calendar comes from `PREVIEW_GOOGLE_BOOKING_CALENDAR_ID`, `PREVIEW_BOOKING_CALENDAR_WRITES=on` and `PREVIEW_STRIPE_WEBHOOK_SECRET` in `.env.local`; `push-netlify-env.sh preview` uses a `PREVIEW_<NAME>` value in place of `<NAME>`. (Done: test calendar, preview webhook and PR #1.)
 3. `bash scripts/push-netlify-env.sh preview`, then redeploy the preview.
 4. Stripe test mode → Webhooks → endpoint `https://deploy-preview-<n>--aracuya.netlify.app/api/stripe/webhook` (events `checkout.session.completed`, `checkout.session.expired`). Save its secret with `bash scripts/set-stripe-keys.sh --webhook`, then push the preview env again.
 5. Test the card (4242), a card cancel, MoMo success/decline, and the MTN callback (it works over HTTPS).
