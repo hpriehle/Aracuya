@@ -10,6 +10,7 @@
 
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { siteOrigin } from "@/lib/booking/origin";
 import { rooms as roomData } from "@/data/rooms";
 import { rangeFits } from "@/lib/booking/availability";
 import {
@@ -174,7 +175,7 @@ async function startCard(
   const eventId = await createHold(details, CARD_HOLD_MINUTES, isStripeTestMode());
 
   try {
-    const origin = request.nextUrl.origin;
+    const origin = siteOrigin(request);
     const nightsLabel = `${q.nights} night${q.nights === 1 ? "" : "s"}`;
     const metadata = {
       bookingId: details.bookingId,
@@ -239,7 +240,7 @@ async function startMomo(request: NextRequest, details: BookingDetails, q: Quote
       externalId: details.bookingId,
       payerMessage: `Aracuya ${details.roomsLabel}, ${nightsLabel} (${details.bookingId})`,
       payeeNote: `Booking ${details.bookingId} ${q.checkIn} to ${q.checkOut}`,
-      callbackUrl: `${request.nextUrl.origin}/api/momo/callback?b=${details.bookingId}&e=${eventId}`,
+      callbackUrl: `${siteOrigin(request)}/api/momo/callback?b=${details.bookingId}&e=${eventId}`,
     });
     await attachPaymentRef(eventId, referenceId);
     return NextResponse.json({ momo: { bookingId: details.bookingId, eventId } });

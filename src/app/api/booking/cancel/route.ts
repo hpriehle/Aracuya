@@ -4,6 +4,7 @@
 // Only ever releases unpaid holds; confirmed bookings are untouched.
 
 import { NextRequest, NextResponse } from "next/server";
+import { siteOrigin } from "@/lib/booking/origin";
 import { getEvent, releaseHold } from "@/lib/booking/calendar";
 import { getStripe } from "@/lib/payments/stripe";
 
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const bookingId = request.nextUrl.searchParams.get("b") ?? "";
   const eventId = request.nextUrl.searchParams.get("e") ?? "";
-  const back = new URL("/reserve?payment=cancelled", request.nextUrl.origin);
+  const back = new URL("/reserve?payment=cancelled", siteOrigin(request));
 
   try {
     const event = eventId ? await getEvent(eventId) : null;
