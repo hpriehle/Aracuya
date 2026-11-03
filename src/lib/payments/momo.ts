@@ -95,39 +95,49 @@ export async function requestToPay(params: {
   const config = getConfig();
   if (!config) throw new MomoNotConfiguredError();
   const token = await getToken(config);
-  const referenceId = randomUUID();
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "X-Reference-Id": referenceId,
-    "X-Target-Environment": momoEnvironment(),
-    "Ocp-Apim-Subscription-Key": config.subscriptionKey,
-    "Content-Type": "application/json",
-  };
-  // MTN only calls back to public https URLs; locally we rely on polling.
-  if (params.callbackUrl?.startsWith("https://")) headers["X-Callback-Url"] = params.callbackUrl;
-
-  const res = await fetch(`${config.baseUrl}/collection/v1_0/requesttopay`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      amount: String(params.amountGhs),
-      currency: isMomoSandbox() ? "EUR" : "GHS",
-      externalId: params.externalId,
-      payer: { partyIdType: "MSISDN", partyId: params.msisdn },
-      // MTN shows these to the payer / on statements. Its firewall rejects
-      // some punctuation (parentheses return an HTML "Request Rejected" page),
-      // so send letters, digits, spaces and hyphens only.
-      payerMessage: safeMessage(params.payerMessage),
-      payeeNote: safeMessage(params.payeeNote),
-    }),
-    cache: "no-store",
+  const body = JSON.stringify({
+    amount: String(params.amountGhs),
+    currency: isMomoSandbox() ? "EUR" : "GHS",
+    externalId: params.externalId,
+    payer: { partyIdType: "MSISDN", partyId: params.msisdn },
+    // MTN shows these to the payer / on statements. Its firewall rejects
+    // some punctuation (parentheses return an HTML "Request Rejected" page),
+    // so send letters, digits, spaces and hyphens only.
+    payerMessage: safeMessage(params.payerMessage),
+    payeeNote: safeMessage(params.payeeNote),
   });
-  if (res.status !== 202) {
-    const body = (await res.text()).slice(0, 200);
-    throw new Error(`MoMo requesttopay failed: ${res.status} ${body}`);
+
+  // MTN only calls back to public https URLs whose host matches the
+  // providerCallbackHost registered for the API user; any other host is
+  // refused with INVALID_CALLBACK_URL_HOST. The callback is only a nudge
+  // (the widget polls the status anyway), so on that error retry without it.
+  const callbacks = params.callbackUrl?.startsWith("https://") ? [params.callbackUrl, undefined] : [undefined];
+  for (const callbackUrl of callbacks) {
+    const referenceId = randomUUID();
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      "X-Reference-Id": referenceId,
+      "X-Target-Environment": momoEnvironment(),
+      "Ocp-Apim-Subscription-Key": config.subscriptionKey,
+      "Content-Type": "application/json",
+    };
+    if (callbackUrl) headers["X-Callback-Url"] = callbackUrl;
+
+    const res = await fetch(`${config.baseUrl}/collection/v1_0/requesttopay`, {
+      method: "POST",
+      headers,
+      body,
+      cache: "no-store",
+    });
+    if (res.status === 202) return referenceId;
+    const text = (await res.text()).slice(0, 200);
+    if (callbackUrl && text.includes("INVALID_CALLBACK_URL_HOST")) {
+      console.warn("[momo] callback host not registered with MTN; relying on status polling");
+      continue;
+    }
+    throw new Error(`MoMo requesttopay failed: ${res.status} ${text}`);
   }
-  return referenceId;
+  throw new Error("MoMo requesttopay failed");
 }
 
 export interface MomoPaymentStatus {
