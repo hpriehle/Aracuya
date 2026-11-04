@@ -232,7 +232,9 @@ export function BookingCheckout({
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate={false}>
+    // The id is how the hub tells a reservation from the contact form: the
+    // tracker reports it as form#booking-checkout, and the site goal matches it.
+    <form id="booking-checkout" onSubmit={handleSubmit} noValidate={false}>
       {/* Summary */}
       <button
         type="button"
