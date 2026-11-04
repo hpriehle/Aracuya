@@ -116,6 +116,10 @@ export default function RootLayout({
             <Footer />
           </SmoothScroll>
         </CurrencyProvider>
+        {/* Siteboard tracker. Keep it a plain tag (not next/script) and keep
+            public/rr.js byte-identical to the engine's ops/tracker/rr.min.js:
+            the engine's checks match this exact tag and compare the file's sha. */}
+        <script src="/rr.js" defer></script>
       </body>
     </html>
   );
