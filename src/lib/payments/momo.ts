@@ -70,7 +70,11 @@ export function normalizeMsisdn(input: string): string | null {
   if (/^233\d{9}$/.test(digits)) return digits;
   if (/^0\d{9}$/.test(digits)) return `233${digits.slice(1)}`;
   if (/^\d{9}$/.test(digits)) return `233${digits}`;
-  if (isMomoSandbox() && /^\d{8,15}$/.test(digits)) return digits;
+  if (isMomoSandbox()) {
+    // MTN's test numbers typed after the widget's fixed +233 prefix.
+    if (/^23346733\d{6}$/.test(digits)) return digits.slice(3);
+    if (/^\d{8,15}$/.test(digits)) return digits;
+  }
   return null;
 }
 

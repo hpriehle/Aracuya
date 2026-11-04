@@ -9,6 +9,7 @@
 //   momo → { momo: { bookingId, eventId } }  poll GET /api/booking/status
 
 import { randomBytes } from "node:crypto";
+import { isPossiblePhoneNumber } from "libphonenumber-js/min";
 import { NextRequest, NextResponse } from "next/server";
 import { siteOrigin } from "@/lib/booking/origin";
 import { rooms as roomData } from "@/data/rooms";
@@ -88,7 +89,9 @@ export async function POST(request: NextRequest) {
   const guests = Number(body.guests);
   if (name.length < 2) return fail(400, "Please enter your name");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail(400, "Please enter a valid email");
-  if (!/^\+?[\d\s()-]{7,20}$/.test(phone)) return fail(400, "Please enter a valid phone number");
+  if (!/^\+?[\d\s()-]{7,20}$/.test(phone) || !isPossiblePhoneNumber(phone)) {
+    return fail(400, "Please enter a valid phone number, with the right country code");
+  }
 
   // Price (server-side only)
   let q: Quote;

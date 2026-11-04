@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { rooms } from "@/data/rooms";
 import { useCurrency } from "@/context/CurrencyContext";
 import type { PricingTier } from "@/types/room";
+import { PhoneInput } from "./PhoneInput";
+import { BookingHelp } from "./BookingHelp";
 
 interface BookingCheckoutProps {
   variant: "light" | "dark";
@@ -265,19 +267,11 @@ export function BookingCheckout({
           <span className={label}>Email</span>
           <input className={input} required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
-        <div className="flex gap-3">
-          <label className="block flex-1">
-            <span className={label}>WhatsApp / phone</span>
-            <input
-              className={input}
-              required
-              type="tel"
-              autoComplete="tel"
-              placeholder="+1 555 123 4567"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </label>
+        <div className="block">
+          <label htmlFor="booking-phone" className={label}>Phone</label>
+          <PhoneInput id="booking-phone" required isDark={isDark} inputClassName={input} onChange={setPhone} />
+        </div>
+        <div>
           <label className="block w-24">
             <span className={label}>Guests</span>
             <select
@@ -315,7 +309,7 @@ export function BookingCheckout({
         <div className="mt-3 space-y-2">
           {methodOption(
             "card",
-            "Card issued outside Ghana",
+            "Credit or debit card",
             `Visa, Mastercard, Amex, Apple Pay · charged in USD (about $${approxUsd.toLocaleString("en-US")})`
           )}
           {methodOption(
@@ -329,35 +323,25 @@ export function BookingCheckout({
         </div>
 
         {method === "momo" && (
-          <label className="mt-4 block">
-            <span className={label}>MTN MoMo number to charge</span>
-            <input
-              className={input}
+          <div className="mt-4 block">
+            <label htmlFor="booking-momo" className={label}>MTN MoMo number to charge</label>
+            <PhoneInput
+              id="booking-momo"
               required
-              type="tel"
-              inputMode="tel"
-              placeholder="024 123 4567"
-              value={momoNumber}
-              onChange={(e) => setMomoNumber(e.target.value)}
+              fixedCountry="GH"
+              isDark={isDark}
+              inputClassName={input}
+              autoComplete="off"
+              placeholder="24 123 4567"
+              onChange={setMomoNumber}
             />
             {MOMO_MODE === "sandbox" && (
               <span className={cn("mt-1.5 block font-body text-[11px]", isDark ? "text-amber-200/70" : "text-amber-700")}>
                 Sandbox: any number succeeds. 46733123450 fails, 46733123451 is declined.
               </span>
             )}
-          </label>
+          </div>
         )}
-        <p className={cn("mt-3 font-body text-xs", isDark ? "text-cream/50" : "text-gray")}>
-          Paying with a Ghana-issued card, Telecel Cash or AirtelTigo Money?{" "}
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn("underline", isDark ? "text-cream/80 hover:text-cream" : "text-green")}
-          >
-            Book on WhatsApp
-          </a>
-        </p>
       </fieldset>
 
       {error && (
@@ -385,6 +369,7 @@ export function BookingCheckout({
           ? "MTN will ask you to approve the payment on your phone. Your dates are held for 10 minutes."
           : "You'll pay on Stripe's secure page. Your dates are held for 30 minutes."}
       </p>
+      <BookingHelp href={whatsappUrl} isDark={isDark} />
     </form>
   );
 }

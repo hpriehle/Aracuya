@@ -7,7 +7,7 @@ import { BookingCheckout } from "@/components/ui/BookingCheckout";
 import { WHATSAPP_NUMBER, rooms } from "@/data/rooms";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Calendar } from "@/components/ui/Calendar";
-import { Button } from "@/components/ui/Button";
+import { BookingHelp } from "@/components/ui/BookingHelp";
 
 interface BookingWidgetProps {
   variant?: "light" | "dark";
@@ -60,7 +60,7 @@ export function BookingWidget({ variant = "light", paymentCancelled = false }: B
   // Coming back from Stripe without paying (see /api/booking/cancel).
   const [notice, setNotice] = useState(
     paymentCancelled
-      ? "Payment wasn't completed, so nothing was charged and your dates were released. If your card didn't work, you can book on WhatsApp."
+      ? "Payment wasn't completed, so nothing was charged and your dates were released. If you have any issues, send us a message on WhatsApp."
       : ""
   );
   const stayNights = checkIn && checkOut ? eachNight(checkIn, checkOut).length : 0;
@@ -324,28 +324,7 @@ export function BookingWidget({ variant = "light", paymentCancelled = false }: B
         >
           {checkIn && checkOut ? "Reserve" : "Select dates to reserve"}
         </button>
-        <a
-          href={getWhatsAppUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "mt-3 block text-center font-body text-xs uppercase tracking-wide transition-colors",
-            isDark ? "text-cream/50 hover:text-cream" : "text-gray hover:text-black"
-          )}
-        >
-          or book on WhatsApp
-        </a>
-        <Button
-          href={property.airbnbUrl}
-          external
-          target="_blank"
-          rel="noopener noreferrer"
-          variant={isDark ? "dark" : "outline"}
-          size="sm"
-          className="mt-3 w-full"
-        >
-          View on Airbnb
-        </Button>
+        <BookingHelp href={getWhatsAppUrl()} isDark={isDark} />
       </div>
     </div>
   );
