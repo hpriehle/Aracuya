@@ -20,6 +20,8 @@ export function Header() {
     pathname === "/" ||
     pathname === "/about" ||
     pathname === "/nzulezu" ||
+    pathname === "/nzulezo" ||
+    pathname === "/nzulenzu" ||
     pathname === "/reserve" ||
     (pathname.startsWith("/rooms/") && pathname !== "/rooms");
 

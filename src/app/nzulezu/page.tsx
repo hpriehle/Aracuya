@@ -1,16 +1,15 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { Container } from "@/components/ui/Container";
-import {
-  galleryPhotos,
-  NZULEZU_COORDS,
-  photos,
-  type NzulezuPhoto,
-} from "@/data/nzulezu";
-import { Button } from "@/components/ui/Button";
+import { galleryPhotos, NZULEZU_COORDS, photos } from "@/data/nzulezu";
 import { ContactCTA } from "@/components/sections/home/ContactCTA";
-import { WHATSAPP_NUMBER } from "@/data/rooms";
+import {
+  Gallery,
+  MoreOnNzulezu,
+  PhotoHero,
+  Section,
+  VillaStay,
+} from "@/components/sections/nzulezu/GuideParts";
 
 const TITLE = "Nzulezu Stilt Village, Ghana: How to Visit & Where to Stay";
 const DESCRIPTION =
@@ -137,76 +136,6 @@ const jsonLd = {
   ],
 };
 
-function PhotoCredit({ photo, light }: { photo: NzulezuPhoto; light?: boolean }) {
-  const link = light ? "underline underline-offset-2 hover:text-cream" : "underline underline-offset-2 hover:text-green";
-  return (
-    <>
-      Photo:{" "}
-      <a href={photo.source} target="_blank" rel="noopener noreferrer" className={link}>
-        {photo.author}
-      </a>
-      ,{" "}
-      <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer license" className={link}>
-        {photo.license}
-      </a>
-    </>
-  );
-}
-
-function Figure({ photo, sizes }: { photo: NzulezuPhoto; sizes: string }) {
-  return (
-    <figure>
-      <div className="relative aspect-[3/2] overflow-hidden rounded-sm bg-gray-light">
-        <Image
-          src={photo.src}
-          alt={photo.alt}
-          fill
-          sizes={sizes}
-          className="object-cover"
-        />
-      </div>
-      <figcaption className="mt-2 font-body text-xs font-light text-gray">
-        <PhotoCredit photo={photo} />
-      </figcaption>
-    </figure>
-  );
-}
-
-function Section({
-  eyebrow,
-  title,
-  children,
-  tinted,
-  photo,
-}: {
-  eyebrow: string;
-  title: string;
-  children: React.ReactNode;
-  tinted?: boolean;
-  photo?: NzulezuPhoto;
-}) {
-  return (
-    <section className={tinted ? "bg-cream-dark py-20 md:py-28" : "py-20 md:py-28"}>
-      <Container>
-        <div className="mx-auto max-w-2xl">
-          <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-green">
-            {eyebrow}
-          </span>
-          <h2 className="mt-4 font-heading text-h2 font-light">{title}</h2>
-          <div className="mt-8 space-y-5 font-body text-body font-light leading-relaxed text-gray">
-            {children}
-          </div>
-        </div>
-        {photo && (
-          <div className="mx-auto mt-12 max-w-4xl">
-            <Figure photo={photo} sizes="(min-width: 1024px) 896px, 100vw" />
-          </div>
-        )}
-      </Container>
-    </section>
-  );
-}
-
 const mapQuery = `${NZULEZU_COORDS.lat},${NZULEZU_COORDS.lng}`;
 const MAP_EMBED = `https://www.google.com/maps?q=${mapQuery}&z=12&output=embed`;
 const MAP_OPEN = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
@@ -220,34 +149,12 @@ export default function NzulezuPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="relative flex min-h-[75vh] w-full items-end overflow-hidden text-cream">
-        <Image
-          src={photos.villageRow.src}
-          alt={photos.villageRow.alt}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/30" />
-        <Container className="relative z-10 pb-14 pt-40 md:pb-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-cream/75">
-              Western Region, Ghana
-            </span>
-            <h1 className="mt-6 font-heading text-h1 font-light md:text-display">
-              Nzulezu, the village on stilts
-            </h1>
-            <p className="mx-auto mt-6 max-w-xl font-body text-body-lg font-light text-cream/85">
-              How to reach Ghana&rsquo;s stilt village on Lake Tadane, what to
-              expect when you arrive, and where to stay nearby.
-            </p>
-          </div>
-        </Container>
-        <p className="absolute bottom-3 right-4 z-10 font-body text-[11px] font-light text-cream/60">
-          <PhotoCredit photo={photos.villageRow} light />
-        </p>
-      </section>
+      <PhotoHero
+        photo={photos.villageRow}
+        eyebrow="Western Region, Ghana"
+        title="Nzulezu, the village on stilts"
+        intro="How to reach Ghana’s stilt village on Lake Tadane, what to expect when you arrive, and where to stay nearby."
+      />
 
       <section className="py-16 md:py-20">
         <Container>
@@ -397,73 +304,14 @@ export default function NzulezuPage() {
         </ul>
       </Section>
 
-      <section className="py-20 md:py-28">
-        <Container>
-          <div className="mx-auto max-w-5xl">
-            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-green">
-              Gallery
-            </span>
-            <h2 className="mt-4 font-heading text-h2 font-light">
-              Life on Lake Tadane
-            </h2>
-            <div className="mt-10 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-              {galleryPhotos.map((p) => (
-                <Figure
-                  key={p.src}
-                  photo={p}
-                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
-                />
-              ))}
-            </div>
-          </div>
-        </Container>
-      </section>
+      <Gallery title="Life on Lake Tadane" photos={galleryPhotos} />
 
-      <section className="bg-green py-20 text-cream md:py-28">
-        <Container>
-          <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-2 md:gap-16">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
-            <Image
-              src="/images/shared/experience.jpg"
-              alt="Aracuya, a thatched over-water villa on stilts above the lily-covered water near Beyin"
-              fill
-              sizes="(min-width: 768px) 480px, 100vw"
-              className="object-cover"
-            />
-          </div>
-          <div className="text-center md:text-left">
-            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-cream/60">
-              Where to stay near Nzulezu
-            </span>
-            <h2 className="mt-4 font-heading text-h2 font-light">
-              Wake up on the water in Beyin
-            </h2>
-            <p className="mt-6 font-body text-body-lg font-light leading-relaxed text-cream/75">
-              Aracuya is a three-bedroom over-water villa in Beyin, where the
-              canoe trip to Nzulezu begins. Stay the night before and you can be
-              on the water first thing, then come back to your own deck over the
-              water instead of a long drive back to Accra.
-            </p>
-            <div className="mt-10">
-              <Button href="/rooms" variant="dark">
-                See the villa
-              </Button>
-            </div>
-            <p className="mt-6 font-body text-small font-light text-cream/70">
-              Planning a visit to Nzulezu?{" "}
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cream underline underline-offset-4"
-              >
-                Ask us on WhatsApp
-              </a>
-            </p>
-          </div>
-          </div>
-        </Container>
-      </section>
+      <VillaStay
+        eyebrow="Where to stay near Nzulezu"
+        title="Wake up on the water in Beyin"
+        body="Aracuya is a three-bedroom over-water villa in Beyin, where the canoe trip to Nzulezu begins. Stay the night before and you can be on the water first thing, then come back to your own deck over the water instead of a long drive back to Accra."
+        placeName="Nzulezu"
+      />
 
       <section className="py-20 md:py-28">
         <Container>
@@ -506,6 +354,8 @@ export default function NzulezuPage() {
           </div>
         </Container>
       </section>
+
+      <MoreOnNzulezu current="/nzulezu" />
 
       <ContactCTA />
     </>
