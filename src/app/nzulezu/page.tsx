@@ -12,9 +12,9 @@ import { Button } from "@/components/ui/Button";
 import { ContactCTA } from "@/components/sections/home/ContactCTA";
 import { WHATSAPP_NUMBER } from "@/data/rooms";
 
-const TITLE = "Nzulezu Stilt Village, Ghana: How to Visit & Where to Stay";
+const TITLE = "Nzulezu (Nzulezo) Stilt Village, Ghana: How to Visit & Where to Stay";
 const DESCRIPTION =
-  "Nzulezu (also spelled Nzulezo) is a village built on stilts over Lake Tadane in Ghana's Western Region. How to get there from Accra and Takoradi, the canoe from Beyin, when to go, and where to stay nearby.";
+  "Nzulezu, also spelled Nzulezo or Nzulenzu, is a village built on stilts over Lake Tadane in Ghana's Western Region. How to get there from Accra and Takoradi, the canoe from Beyin, when to go, and where to stay nearby.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -47,7 +47,8 @@ const facts: { label: string; value: string }[] = [
   },
   {
     label: "The name",
-    value: "Nzulezu means “water surface” in the Nzema language. It is also spelled Nzulezo",
+    value:
+      "Nzulezu means “water surface” in the Nzema language. You will also see it spelled Nzulezo and Nzulenzu",
   },
   { label: "Who lives there", value: "A community of more than 500 people" },
   {
@@ -76,7 +77,11 @@ const faqs: { q: string; a: string }[] = [
   },
   {
     q: "What does Nzulezu mean?",
-    a: "“Water surface” in Nzema, the language spoken in this part of the Western Region. You will see the name spelled both Nzulezu and Nzulezo.",
+    a: "“Water surface” in Nzema, the language spoken in this part of the Western Region.",
+  },
+  {
+    q: "Is it Nzulezu, Nzulezo or Nzulenzu?",
+    a: "All three are used for the same place. Nzulezu and Nzulezo are the most common, and Wikipedia lists the village as Nzulezo; Nzulenzu is a frequent variant. Whichever spelling you search for, it is the same stilt village on Lake Tadane.",
   },
   {
     q: "Is Nzulezu a UNESCO World Heritage Site?",
@@ -103,7 +108,7 @@ const jsonLd = {
       "@type": "TouristAttraction",
       "@id": "https://aracuya.com/nzulezu#nzulezu",
       name: "Nzulezu",
-      alternateName: ["Nzulezo", "Nzulezu Stilt Village"],
+      alternateName: ["Nzulezo", "Nzulenzu", "Nzulezu Stilt Village"],
       description:
         "A village built entirely on stilts over Lake Tadane in the Amansuri wetland, reached by canoe from Beyin.",
       url: "https://aracuya.com/nzulezu",
@@ -416,14 +421,24 @@ export default function NzulezuPage() {
 
       <section className="bg-green py-20 text-cream md:py-28">
         <Container>
-          <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-2 md:gap-16">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
+            <Image
+              src="/images/shared/experience.jpg"
+              alt="Aracuya, a thatched over-water villa on stilts above the lily-covered water near Beyin"
+              fill
+              sizes="(min-width: 768px) 480px, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="text-center md:text-left">
             <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-cream/60">
               Where to stay near Nzulezu
             </span>
             <h2 className="mt-4 font-heading text-h2 font-light">
               Wake up on the water in Beyin
             </h2>
-            <p className="mx-auto mt-6 font-body text-body-lg font-light leading-relaxed text-cream/75">
+            <p className="mt-6 font-body text-body-lg font-light leading-relaxed text-cream/75">
               Aracuya is a three-bedroom over-water villa in Beyin, where the
               canoe trip to Nzulezu begins. Stay the night before and you can be
               on the water first thing, then come back to your own deck over the
@@ -445,6 +460,7 @@ export default function NzulezuPage() {
                 Ask us on WhatsApp
               </a>
             </p>
+          </div>
           </div>
         </Container>
       </section>
