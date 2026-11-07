@@ -1,6 +1,13 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
+import {
+  galleryPhotos,
+  NZULEZU_COORDS,
+  photos,
+  type NzulezuPhoto,
+} from "@/data/nzulezu";
 import { Button } from "@/components/ui/Button";
 import { ContactCTA } from "@/components/sections/home/ContactCTA";
 import { WHATSAPP_NUMBER } from "@/data/rooms";
@@ -18,9 +25,11 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     url: "/nzulezu",
     type: "article",
+    images: [{ url: photos.villageRow.src, alt: photos.villageRow.alt }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
+    images: [photos.villageRow.src],
     title: TITLE,
     description: DESCRIPTION,
   },
@@ -98,6 +107,12 @@ const jsonLd = {
       description:
         "A village built entirely on stilts over Lake Tadane in the Amansuri wetland, reached by canoe from Beyin.",
       url: "https://aracuya.com/nzulezu",
+      image: `https://aracuya.com${photos.villageRow.src}`,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: NZULEZU_COORDS.lat,
+        longitude: NZULEZU_COORDS.lng,
+      },
       address: {
         "@type": "PostalAddress",
         addressLocality: "Beyin",
@@ -117,16 +132,53 @@ const jsonLd = {
   ],
 };
 
+function PhotoCredit({ photo, light }: { photo: NzulezuPhoto; light?: boolean }) {
+  const link = light ? "underline underline-offset-2 hover:text-cream" : "underline underline-offset-2 hover:text-green";
+  return (
+    <>
+      Photo:{" "}
+      <a href={photo.source} target="_blank" rel="noopener noreferrer" className={link}>
+        {photo.author}
+      </a>
+      ,{" "}
+      <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer license" className={link}>
+        {photo.license}
+      </a>
+    </>
+  );
+}
+
+function Figure({ photo, sizes }: { photo: NzulezuPhoto; sizes: string }) {
+  return (
+    <figure>
+      <div className="relative aspect-[3/2] overflow-hidden rounded-sm bg-gray-light">
+        <Image
+          src={photo.src}
+          alt={photo.alt}
+          fill
+          sizes={sizes}
+          className="object-cover"
+        />
+      </div>
+      <figcaption className="mt-2 font-body text-xs font-light text-gray">
+        <PhotoCredit photo={photo} />
+      </figcaption>
+    </figure>
+  );
+}
+
 function Section({
   eyebrow,
   title,
   children,
   tinted,
+  photo,
 }: {
   eyebrow: string;
   title: string;
   children: React.ReactNode;
   tinted?: boolean;
+  photo?: NzulezuPhoto;
 }) {
   return (
     <section className={tinted ? "bg-cream-dark py-20 md:py-28" : "py-20 md:py-28"}>
@@ -140,10 +192,20 @@ function Section({
             {children}
           </div>
         </div>
+        {photo && (
+          <div className="mx-auto mt-12 max-w-4xl">
+            <Figure photo={photo} sizes="(min-width: 1024px) 896px, 100vw" />
+          </div>
+        )}
       </Container>
     </section>
   );
 }
+
+const mapQuery = `${NZULEZU_COORDS.lat},${NZULEZU_COORDS.lng}`;
+const MAP_EMBED = `https://www.google.com/maps?q=${mapQuery}&z=12&output=embed`;
+const MAP_OPEN = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+const MAP_DIRECTIONS = `https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`;
 
 export default function NzulezuPage() {
   return (
@@ -153,21 +215,33 @@ export default function NzulezuPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="bg-green-dark pb-20 pt-40 text-cream md:pb-28 md:pt-48">
-        <Container>
+      <section className="relative flex min-h-[75vh] w-full items-end overflow-hidden text-cream">
+        <Image
+          src={photos.villageRow.src}
+          alt={photos.villageRow.alt}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/30" />
+        <Container className="relative z-10 pb-14 pt-40 md:pb-20">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-cream/60">
+            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-cream/75">
               Western Region, Ghana
             </span>
             <h1 className="mt-6 font-heading text-h1 font-light md:text-display">
               Nzulezu, the village on stilts
             </h1>
-            <p className="mx-auto mt-6 max-w-xl font-body text-body-lg font-light text-cream/70">
+            <p className="mx-auto mt-6 max-w-xl font-body text-body-lg font-light text-cream/85">
               How to reach Ghana&rsquo;s stilt village on Lake Tadane, what to
               expect when you arrive, and where to stay nearby.
             </p>
           </div>
         </Container>
+        <p className="absolute bottom-3 right-4 z-10 font-body text-[11px] font-light text-cream/60">
+          <PhotoCredit photo={photos.villageRow} light />
+        </p>
       </section>
 
       <section className="py-16 md:py-20">
@@ -187,7 +261,12 @@ export default function NzulezuPage() {
         </Container>
       </section>
 
-      <Section eyebrow="The village" title="A whole community built on water" tinted>
+      <Section
+        eyebrow="The village"
+        title="A whole community built on water"
+        tinted
+        photo={photos.boardwalk}
+      >
         <p>
           Nzulezu stands on wooden stilts and platforms over Lake Tadane, deep in
           the Amansuri wetland, one of the largest stretches of freshwater swamp
@@ -210,7 +289,11 @@ export default function NzulezuPage() {
         </p>
       </Section>
 
-      <Section eyebrow="Getting there" title="How to get to Nzulezu">
+      <Section
+        eyebrow="Getting there"
+        title="How to get to Nzulezu"
+        photo={photos.raffiaWetland}
+      >
         <p>
           <strong className="font-medium text-black">From Accra.</strong> Nzulezu
           is about 316 km west of Accra. By road, along the coastal highway
@@ -231,7 +314,52 @@ export default function NzulezuPage() {
         </p>
       </Section>
 
-      <Section eyebrow="Plan your visit" title="Before you go" tinted>
+      <section className="pb-20 md:pb-28">
+        <Container>
+          <div className="mx-auto max-w-4xl">
+            <h2 className="font-heading text-h3 font-light">Nzulezu on the map</h2>
+            <p className="mt-3 max-w-2xl font-body text-body font-light leading-relaxed text-gray">
+              The village sits on Lake Tadane, inland from the coast at Beyin,
+              close to Ghana&rsquo;s border with C&ocirc;te d&rsquo;Ivoire.
+            </p>
+            <div className="mt-8 aspect-[4/3] overflow-hidden rounded-sm border border-gray-light bg-gray-light md:aspect-[16/9]">
+              <iframe
+                src={MAP_EMBED}
+                title="Map showing Nzulezu stilt village on Lake Tadane, Western Region, Ghana"
+                className="h-full w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 font-body text-small">
+              <a
+                href={MAP_DIRECTIONS}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green underline underline-offset-4"
+              >
+                Directions in Google Maps
+              </a>
+              <a
+                href={MAP_OPEN}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green underline underline-offset-4"
+              >
+                Open the map
+              </a>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <Section
+        eyebrow="Plan your visit"
+        title="Before you go"
+        tinted
+        photo={photos.canoeArrival}
+      >
         <ul className="list-disc space-y-3 pl-5">
           <li>
             <strong className="font-medium text-black">Go early.</strong> Morning
@@ -263,6 +391,28 @@ export default function NzulezuPage() {
           </li>
         </ul>
       </Section>
+
+      <section className="py-20 md:py-28">
+        <Container>
+          <div className="mx-auto max-w-5xl">
+            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-green">
+              Gallery
+            </span>
+            <h2 className="mt-4 font-heading text-h2 font-light">
+              Life on Lake Tadane
+            </h2>
+            <div className="mt-10 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+              {galleryPhotos.map((p) => (
+                <Figure
+                  key={p.src}
+                  photo={p}
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                />
+              ))}
+            </div>
+          </div>
+        </Container>
+      </section>
 
       <section className="bg-green py-20 text-cream md:py-28">
         <Container>

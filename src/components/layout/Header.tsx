@@ -19,6 +19,7 @@ export function Header() {
   const hasDarkHero =
     pathname === "/" ||
     pathname === "/about" ||
+    pathname === "/nzulezu" ||
     pathname === "/reserve" ||
     (pathname.startsWith("/rooms/") && pathname !== "/rooms");
 
