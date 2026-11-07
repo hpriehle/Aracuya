@@ -26,7 +26,9 @@ export function ContactForm() {
       subject: formData.get('subject') as string,
       message: formData.get('message') as string,
       _company: formData.get('_company') as string,
-      _t: formData.get('_t') as string,
+      // Read the ref directly: a hidden input bound to it stays empty, since
+      // setting a ref doesn't re-render.
+      _t: loadedAt.current,
     };
 
     try {
@@ -69,7 +71,6 @@ export function ContactForm() {
         <label htmlFor="_company">Company</label>
         <input type="text" id="_company" name="_company" tabIndex={-1} autoComplete="off" />
       </div>
-      <input type="hidden" name="_t" value={loadedAt.current} />
 
       {error && (
         <div className="rounded bg-red-50 p-4 text-sm text-red-600">

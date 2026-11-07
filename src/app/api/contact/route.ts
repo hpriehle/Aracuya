@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { ghlConfigured, upsertGhlLead } from '@/lib/ghl';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -23,6 +24,34 @@ function escapeHtml(str: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+interface Lead {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+}
+
+async function sendEmail({ name, email, phone, subject, message }: Lead): Promise<string | undefined> {
+  const { data, error } = await resend.emails.send({
+    from: 'Aracuya Contact Form <onboarding@resend.dev>',
+    to: 'harrison@riehle.co',
+    replyTo: email,
+    subject: `[Aracuya Contact] ${subject}`,
+    html: `
+      <h2>New Contact Form Submission</h2>
+      <p><strong>From:</strong> ${escapeHtml(name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+      ${phone ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : ''}
+      <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
+      <p><strong>Message:</strong></p>
+      <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
+    `,
+  });
+  if (error) throw new Error(`Resend: ${error.message || JSON.stringify(error)}`);
+  return data?.id;
 }
 
 export async function POST(request: NextRequest) {
@@ -69,34 +98,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // Send email via Resend
-    console.log('[Contact API] Attempting to send email...');
-    const { data, error } = await resend.emails.send({
-      from: 'Aracuya Contact Form <onboarding@resend.dev>',
-      to: "harrison@riehle.co",
-      replyTo: email,
-      subject: `[Aracuya Contact] ${subject}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${escapeHtml(name)}</p>
-        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        ${phone ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : ''}
-        <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
-        <p><strong>Message:</strong></p>
-        <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
-      `,
-    });
+    const lead = { name, email, phone, subject, message };
 
-    if (error) {
-      console.error('[Contact API] Resend error:', JSON.stringify(error, null, 2));
-      return NextResponse.json(
-        { error: 'Failed to send email', details: error.message || 'Unknown error' },
-        { status: 500 }
-      );
+    // GoHighLevel is the record of every enquiry; the email is the alert.
+    // Both run, and the visitor only sees an error if both fail.
+    const [ghl, mail] = await Promise.allSettled([
+      ghlConfigured()
+        ? upsertGhlLead({
+            name,
+            email,
+            phone,
+            source: 'aracuya.com contact form',
+            tags: ['website contact form'],
+            note: `Contact form: ${subject}\n\n${message}`,
+          })
+        : Promise.reject(new Error('GHL_API_TOKEN / GHL_LOCATION_ID not set')),
+      sendEmail(lead),
+    ]);
+
+    if (ghl.status === 'fulfilled') {
+      console.log('[Contact API] GHL contact upserted:', ghl.value);
+    } else {
+      console.error('[Contact API] GHL failed:', ghl.reason);
+    }
+    if (mail.status === 'fulfilled') {
+      console.log('[Contact API] Email sent:', mail.value);
+    } else {
+      console.error('[Contact API] Email failed:', mail.reason);
     }
 
-    console.log('[Contact API] Email sent successfully:', data?.id);
-    return NextResponse.json({ success: true, id: data?.id });
+    if (ghl.status === 'rejected' && mail.status === 'rejected') {
+      // Last resort so the enquiry isn't lost: Netlify keeps logs for 24 hours.
+      console.error('[Contact API] UNDELIVERED SUBMISSION:', JSON.stringify(lead));
+      return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[Contact API] Exception:', error);
     return NextResponse.json(
