@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { ContactCTA } from "@/components/sections/home/ContactCTA";
 import { WHATSAPP_NUMBER } from "@/data/rooms";
 
-const TITLE = "Nzulezu (Nzulezo) Stilt Village, Ghana: How to Visit & Where to Stay";
+const TITLE = "Nzulezu Stilt Village, Ghana: How to Visit & Where to Stay";
 const DESCRIPTION =
   "Nzulezu, also spelled Nzulezo or Nzulenzu, is a village built on stilts over Lake Tadane in Ghana's Western Region. How to get there from Accra and Takoradi, the canoe from Beyin, when to go, and where to stay nearby.";
 
