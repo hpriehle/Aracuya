@@ -7,6 +7,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import type { PricingTier } from "@/types/room";
 import { PhoneInput } from "./PhoneInput";
 import { BookingHelp } from "./BookingHelp";
+import { CANCELLATION_POLICY } from "@/lib/booking/policy";
 
 interface BookingCheckoutProps {
   variant: "light" | "dark";
@@ -345,6 +346,11 @@ export function BookingCheckout({
           </div>
         )}
       </fieldset>
+
+      <p className={cn("mt-6 font-body text-xs leading-relaxed", isDark ? "text-cream/60" : "text-gray")}>
+        <span className={cn("font-medium", isDark ? "text-cream/80" : "text-black")}>Cancellation policy: </span>
+        {CANCELLATION_POLICY}
+      </p>
 
       {error && (
         <p role="alert" className="mt-4 rounded border border-red-400/40 bg-red-500/10 px-3 py-2 font-body text-xs text-red-300">

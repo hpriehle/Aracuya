@@ -6,6 +6,7 @@ import { checkMomoBooking, finalizeStripeSession, paidLabel } from "@/lib/bookin
 import { getEvent } from "@/lib/booking/calendar";
 import { eachNight } from "@/lib/booking/availability";
 import { getStripe } from "@/lib/payments/stripe";
+import { CANCELLATION_POLICY } from "@/lib/booking/policy";
 
 export const metadata: Metadata = {
   title: "Booking confirmed",
@@ -134,6 +135,7 @@ export default async function ConfirmedPage({
               <p className="font-body text-xs text-cream/50">
                 We&apos;ll message you on WhatsApp with directions and arrival details.
               </p>
+              <p className="mt-3 font-body text-xs text-cream/50">{CANCELLATION_POLICY}</p>
             </>
           ) : (
             <>

@@ -12,6 +12,7 @@ import { randomBytes } from "node:crypto";
 import { isPossiblePhoneNumber } from "libphonenumber-js/min";
 import { NextRequest, NextResponse } from "next/server";
 import { siteOrigin } from "@/lib/booking/origin";
+import { CANCELLATION_POLICY } from "@/lib/booking/policy";
 import { rooms as roomData } from "@/data/rooms";
 import { rangeFits } from "@/lib/booking/availability";
 import {
@@ -226,8 +227,7 @@ async function startCard(
       // The page header shows the account name (Automaddie); explain it.
       custom_text: {
         submit: {
-          message:
-            "Payments for Aracuya are processed by Automaddie. Your card statement will show AUTOMADDIE* ARACUYA.",
+          message: `${CANCELLATION_POLICY} Payments for Aracuya are processed by Automaddie; your card statement will show AUTOMADDIE* ARACUYA.`,
         },
       },
       expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60,
