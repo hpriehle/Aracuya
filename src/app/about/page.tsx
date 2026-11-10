@@ -17,7 +17,7 @@ export const metadata: Metadata = {
       "Aracuya is a handcrafted floating villa near Nzulezu, the village on stilts. Built with local artisans, supporting the community that inspired it.",
     images: [
       {
-        url: "/images/about/hero.jpg",
+        url: "/images/about/aracuya-villa-sunset.jpg",
         width: 1200,
         height: 630,
         alt: "Aracuya floating villa near Nzulezu, Ghana",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "About Aracuya | Over-Water Villa near Nzulezu",
     description:
       "Aracuya is a handcrafted floating villa near Nzulezu, the village on stilts. Built with local artisans, supporting the community that inspired it.",
-    images: ["/images/about/hero.jpg"],
+    images: ["/images/about/aracuya-villa-sunset.jpg"],
   },
 };
 

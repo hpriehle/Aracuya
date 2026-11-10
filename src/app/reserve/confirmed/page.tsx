@@ -89,7 +89,7 @@ export default async function ConfirmedPage({
     <section className="relative min-h-dvh w-full overflow-hidden">
       <div className="absolute inset-0 z-10 bg-black/60" />
       <Image
-        src="/images/hero/main.jpg"
+        src="/images/hero/aracuya-aerial-view.jpg"
         alt="Aracuya floating villa"
         fill
         priority

@@ -8,8 +8,8 @@ export function Experience() {
       <Container wide>
         <div className="grid items-center gap-12 md:grid-cols-2 md:gap-8 lg:gap-12">
           <ParallaxImage
-            src="/images/shared/experience.jpg"
-            alt="Aracuya hotel experience"
+            src="/images/shared/aracuya-floating-villa-beyin.jpg"
+            alt="Aracuya, a thatched floating villa on stilts above the lily-covered water near Beyin, Ghana"
             className="aspect-[3/4] md:aspect-[2/3]"
             sizes="(max-width: 768px) 100vw, 50vw"
           />

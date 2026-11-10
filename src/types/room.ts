@@ -19,5 +19,7 @@ export interface Room {
   images: {
     hero: string;
     gallery: string[];
+    /** One description per photo: the hero first, then each gallery image. */
+    alts: string[];
   };
 }

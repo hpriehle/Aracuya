@@ -27,8 +27,8 @@ export function Story() {
 
         <div className="mt-24 grid items-center gap-12 md:grid-cols-2 md:gap-16">
           <ImageReveal
-            src="/images/about/story-1.jpg"
-            alt="Aracuya grounds"
+            src="/images/about/aracuya-lake-view-interior.jpg"
+            alt="Inside Aracuya: a wooden table by the window, looking out over the wetland"
             direction="left"
             aspectRatio="aspect-[4/5]"
           />
@@ -60,8 +60,8 @@ export function Story() {
         <div className="mt-24 grid items-center gap-12 md:grid-cols-2 md:gap-16">
           <div className="md:order-1">
             <ImageReveal
-              src="/images/about/story-2.jpg"
-              alt="Aracuya interior detail"
+              src="/images/about/aracuya-villa-from-above.jpg"
+              alt="Aracuya from above, its boardwalk crossing the lily-covered lake"
               direction="right"
               aspectRatio="aspect-[4/5]"
             />

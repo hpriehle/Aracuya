@@ -35,8 +35,8 @@ export function AboutHero() {
       <div className="absolute inset-0 bg-black/40 z-10" />
 
       <Image
-        src="/images/about/hero.jpg"
-        alt="Aracuya hotel exterior"
+        src="/images/about/aracuya-villa-sunset.jpg"
+        alt="Aracuya at sunset, the floating villa lit up over the water in Beyin"
         fill
         priority
         quality={85}

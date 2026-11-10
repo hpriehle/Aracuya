@@ -157,7 +157,7 @@ export function VillaStay({
         <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-2 md:gap-16">
           <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
             <Image
-              src="/images/shared/experience.jpg"
+              src="/images/shared/aracuya-floating-villa-beyin.jpg"
               alt="Aracuya, a thatched over-water villa on stilts above the lily-covered water near Beyin"
               fill
               sizes="(min-width: 768px) 480px, 100vw"
@@ -174,7 +174,7 @@ export function VillaStay({
             </p>
             <div className="mt-10">
               <Button href="/rooms" variant="dark">
-                See the villa
+                See Aracuya
               </Button>
             </div>
             <p className="mt-6 font-body text-small font-light text-cream/70">
@@ -212,7 +212,7 @@ export function VillaTeaser({
         <div className="mx-auto grid max-w-5xl overflow-hidden rounded-sm bg-green text-cream md:grid-cols-[1.1fr_1fr]">
           <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[320px]">
             <Image
-              src="/images/hero/main.jpg"
+              src="/images/hero/aracuya-aerial-view.jpg"
               alt="Aracuya from above: a thatched villa on stilts, reached by a long boardwalk over lily-covered water"
               fill
               sizes="(min-width: 768px) 540px, 100vw"
@@ -229,7 +229,7 @@ export function VillaTeaser({
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
               <Button href="/rooms" variant="dark" size="sm">
-                See the villa
+                See Aracuya
               </Button>
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}

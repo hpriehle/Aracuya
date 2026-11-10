@@ -15,7 +15,7 @@ export const metadata: Metadata = {
       "Book your stay at Aracuya. Choose one room, two, or the entire over-water villa near Nzulezu in Ghana's Western Region.",
     images: [
       {
-        url: "/images/hero/main.jpg",
+        url: "/images/hero/aracuya-aerial-view.jpg",
         width: 1200,
         height: 630,
         alt: "Aracuya floating villa near Nzulezu, Ghana",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     title: "Reserve | Aracuya",
     description:
       "Book your stay at Aracuya. Choose one room, two, or the entire over-water villa near Nzulezu in Ghana's Western Region.",
-    images: ["/images/hero/main.jpg"],
+    images: ["/images/hero/aracuya-aerial-view.jpg"],
   },
 };
 
@@ -43,8 +43,8 @@ export default async function ReservePage({
       <div className="absolute inset-0 bg-black/50 z-10" />
 
       <Image
-        src="/images/hero/main.jpg"
-        alt="Aracuya luxury hotel"
+        src="/images/hero/aracuya-aerial-view.jpg"
+        alt="Aracuya from above: a thatched floating villa on stilts over lily-covered water in Beyin, Ghana"
         fill
         priority
         quality={85}

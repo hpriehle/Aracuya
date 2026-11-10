@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Aracuya",
     images: [
       {
-        url: "/images/hero/main.jpg",
+        url: "/images/hero/aracuya-aerial-view.jpg",
         width: 1200,
         height: 630,
         alt: "Aracuya floating villa near Nzulezu, Ghana",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     title: "Aracuya | Floating Villa near Nzulezu, Ghana",
     description:
       "A luxurious over-water villa on stilts near Nzulezu — Ghana's largest floating villa, in the Western Region.",
-    images: ["/images/hero/main.jpg"],
+    images: ["/images/hero/aracuya-aerial-view.jpg"],
   },
 };
 
@@ -65,15 +65,18 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Hotel",
+    "@id": "https://aracuya.com/#hotel",
     name: "Aracuya",
+    alternateName: ["Aracuya Floating Villa", "Aracuya Beyin"],
     description:
       "Ghana's largest floating villa — a luxurious 3-bedroom over-water retreat near Nzulezu in the Western Region. Book directly for the best rate.",
     url: "https://aracuya.com",
-    telephone: "+233597957528",
+    telephone: "+233551542355",
     email: "info@aracuya.com",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
+      streetAddress: "Nzulezu water canal",
       addressLocality: "Beyin",
       addressRegion: "Western Region",
       addressCountry: "GH",
@@ -86,8 +89,15 @@ export default function RootLayout({
     checkinTime: "15:00",
     checkoutTime: "11:00",
     numberOfRooms: 3,
-    image: "https://aracuya.com/images/hero/main.jpg",
-    sameAs: ["https://airbnb.com/h/aracuya"],
+    geo: { "@type": "GeoCoordinates", latitude: 4.990322, longitude: -2.592731 },
+    // The Google Business Profile, by its Maps cid. Add each new profile
+    // (Instagram, Facebook, TripAdvisor, Booking.com) to sameAs as it goes live.
+    hasMap: "https://maps.google.com/?cid=5391552058959860296",
+    image: "https://aracuya.com/images/hero/aracuya-aerial-view.jpg",
+    sameAs: [
+      "https://airbnb.com/h/aracuya",
+      "https://maps.google.com/?cid=5391552058959860296",
+    ],
   };
 
   return (

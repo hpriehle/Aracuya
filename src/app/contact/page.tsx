@@ -16,7 +16,7 @@ export const metadata: Metadata = {
       "Reach the Aracuya team to plan your stay near Nzulezu in Ghana's Western Region. WhatsApp, phone, and email available.",
     images: [
       {
-        url: "/images/hero/main.jpg",
+        url: "/images/hero/aracuya-aerial-view.jpg",
         width: 1200,
         height: 630,
         alt: "Aracuya floating villa near Nzulezu, Ghana",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: "Contact | Aracuya Floating Villa, Beyin, Ghana",
     description:
       "Reach the Aracuya team to plan your stay near Nzulezu in Ghana's Western Region. WhatsApp, phone, and email available.",
-    images: ["/images/hero/main.jpg"],
+    images: ["/images/hero/aracuya-aerial-view.jpg"],
   },
 };
 
@@ -92,13 +92,13 @@ export default function ContactPage() {
                   </h2>
                   <div className="mt-3 flex items-center justify-center gap-2">
                     <a
-                      href="tel:+233597957528"
+                      href="tel:+233551542355"
                       className="font-body text-body font-light text-gray transition-colors hover:text-green"
                     >
-                      +233 597 957 528
+                      +233 55 154 2355
                     </a>
                     <a
-                      href="https://wa.me/233597957528"
+                      href="https://wa.me/233551542355"
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Chat on WhatsApp"
