@@ -145,3 +145,13 @@ Netlify site `aracuya` deploys from GitHub `hpriehle/Aracuya`, branch `main`. As
 5. **Deploy:** merge the PR to `main`.
 6. **Smoke test:** make one real 1-room card booking, check the calendar event and the emails, then refund it in Stripe and delete the event.
 7. **MoMo later:** once MTN Ghana issues live Collections keys, add `MOMO_ENVIRONMENT=mtnghana`, the keys and `NEXT_PUBLIC_MOMO_MODE=live`, re-run the production push and redeploy. Create the live API user with the site's domain as its callback host (`providerCallbackHost`); MTN refuses callbacks to any other host (`INVALID_CALLBACK_URL_HOST`), and the sandbox user copied from Abeiku is registered to Abeiku's host, so the preview runs on polling alone.
+
+## GoHighLevel (guest contacts, emails, WhatsApp)
+
+`src/lib/booking/ghl-booking.ts` saves every guest who reaches payment as a GHL contact (email + WhatsApp number in E.164) and writes the booking to contact custom fields: `contact.booking_id`, `booking_status` (checkout started / confirmed), `booking_checkin`, `booking_checkout`, `booking_rooms`, `booking_nights`, `booking_guests`, `booking_total`, `booking_payment`. Confirmed bookings also get a note.
+
+- Tag `website booking started` when the guest reaches payment; removed on confirmation.
+- Tag `website booking confirmed` on confirmation, removed and re-added each time so "tag added" workflows fire for returning guests too.
+- Test payments are skipped unless `GHL_SYNC_TEST_BOOKINGS=on` (then tagged `test booking`).
+
+Guest emails (and later WhatsApp: confirmation, arrival instructions) are GHL workflows on those tags. Resend now only sends the owner notification and ACTION NEEDED alerts.

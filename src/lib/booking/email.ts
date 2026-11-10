@@ -3,11 +3,10 @@
 // Env:
 //   RESEND_API_KEY
 //   BOOKING_NOTIFY_EMAIL  who hears about new bookings (default harrison@riehle.co)
-//   BOOKING_EMAIL_FROM    e.g. "Aracuya <bookings@aracuya.com>" — a sender on a
-//                         domain verified in Resend. Until it's set, guest
-//                         confirmations are skipped (Resend's shared test sender
-//                         can only reach the account owner); guests still get
-//                         Stripe's receipt.
+//   BOOKING_EMAIL_FROM    optional sender on a domain verified in Resend
+//
+// Owner notifications only. Guest emails (and later WhatsApp) are sent by GHL
+// workflows triggered from ghl-booking.ts.
 
 import { Resend } from "resend";
 import type { BookingProps } from "./calendar";
@@ -65,26 +64,6 @@ export async function sendBookingEmails(p: BookingProps, paidLabel: string, test
     ].join("\n"),
     from
   );
-
-  if (process.env.BOOKING_EMAIL_FROM) {
-    await send(
-      p.guestEmail,
-      `${prefix}Your Aracuya booking is confirmed`,
-      [
-        `Hello ${p.guestName},`,
-        "",
-        "Thank you for booking Aracuya. Your stay is confirmed:",
-        "",
-        ...summaryLines(p, paidLabel),
-        "",
-        "We'll be in touch on WhatsApp with directions and arrival details.",
-        "Questions? Message us at +233 55 154 2355.",
-        "",
-        "Aracuya",
-      ].join("\n"),
-      from
-    );
-  }
 }
 
 /** Something needs a human: e.g. a guest paid but their hold had vanished. */

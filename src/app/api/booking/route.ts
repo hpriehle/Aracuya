@@ -12,6 +12,7 @@ import { randomBytes } from "node:crypto";
 import { isPossiblePhoneNumber } from "libphonenumber-js/min";
 import { NextRequest, NextResponse } from "next/server";
 import { siteOrigin } from "@/lib/booking/origin";
+import { ghlBookingStarted } from "@/lib/booking/ghl-booking";
 import { CANCELLATION_POLICY } from "@/lib/booking/policy";
 import { rooms as roomData } from "@/data/rooms";
 import { rangeFits } from "@/lib/booking/availability";
@@ -177,6 +178,7 @@ async function startCard(
   const ghsPerUsd = await getGhsPerUsd();
   const usdCents = ghsToUsdCents(q.totalGhs, ghsPerUsd);
   const eventId = await createHold(details, CARD_HOLD_MINUTES, isStripeTestMode());
+  await ghlBookingStarted(details, isStripeTestMode());
 
   try {
     const origin = siteOrigin(request);
@@ -245,6 +247,7 @@ async function startCard(
 
 async function startMomo(request: NextRequest, details: BookingDetails, q: Quote, msisdn: string) {
   const eventId = await createHold(details, MOMO_HOLD_MINUTES, isMomoSandbox());
+  await ghlBookingStarted(details, isMomoSandbox());
   try {
     const nightsLabel = `${q.nights} night${q.nights === 1 ? "" : "s"}`;
     const referenceId = await requestToPay({

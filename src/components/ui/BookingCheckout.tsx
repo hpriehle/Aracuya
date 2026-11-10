@@ -271,8 +271,11 @@ export function BookingCheckout({
           <input className={input} required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <div className="block">
-          <label htmlFor="booking-phone" className={label}>Phone</label>
+          <label htmlFor="booking-phone" className={label}>WhatsApp number</label>
           <PhoneInput id="booking-phone" required isDark={isDark} inputClassName={input} onChange={setPhone} />
+          <span className={cn("mt-1.5 block font-body text-[11px]", isDark ? "text-cream/40" : "text-gray")}>
+            We&apos;ll send your booking details and arrival instructions here and by email.
+          </span>
         </div>
         <div>
           <label className="block w-24">
