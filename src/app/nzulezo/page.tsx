@@ -8,6 +8,7 @@ import {
   PhotoHero,
   Section,
   VillaStay,
+  VillaTeaser,
 } from "@/components/sections/nzulezu/GuideParts";
 
 // The history page, written with the "Nzulezo" spelling (Wikipedia's) so it
@@ -116,6 +117,12 @@ export default function NzulezoPage() {
           turns up often too. All three are the same village.
         </p>
       </Section>
+
+      <VillaTeaser
+        title="See Nzulezo, then sleep on the water yourself"
+        body="Aracuya is a three-bedroom over-water villa in Beyin, where the canoe to Nzulezo leaves. Stay the night and reach the village in the cool of the morning."
+        placeName="Nzulezo"
+      />
 
       <Section
         eyebrow="Origins"

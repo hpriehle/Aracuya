@@ -9,6 +9,7 @@ import {
   PhotoHero,
   Section,
   VillaStay,
+  VillaTeaser,
 } from "@/components/sections/nzulezu/GuideParts";
 
 const TITLE = "Nzulezu Stilt Village, Ghana: How to Visit & Where to Stay";
@@ -172,6 +173,12 @@ export default function NzulezuPage() {
           </dl>
         </Container>
       </section>
+
+      <VillaTeaser
+        title="Stay on the water in Beyin, where the canoe leaves"
+        body="Aracuya is a three-bedroom over-water villa in Beyin, where the canoe trip to Nzulezu begins. Sleep here the night before and be on the water first thing."
+        placeName="Nzulezu"
+      />
 
       <Section
         eyebrow="The village"

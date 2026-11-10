@@ -8,6 +8,7 @@ import {
   MoreOnNzulezu,
   PhotoHero,
   VillaStay,
+  VillaTeaser,
 } from "@/components/sections/nzulezu/GuideParts";
 
 // The day-plan page, written with the "Nzulenzu" spelling so it can rank for
@@ -46,7 +47,7 @@ const steps: {
   {
     when: "The night before",
     title: "Sleep in Beyin",
-    body: "Nzulenzu is five to seven hours' drive from Accra, so a same-day round trip leaves little time on the water. Arrive in Beyin the evening before and the canoe is minutes away in the morning.",
+    body: "Nzulenzu is five to seven hours' drive from Accra, so a same-day round trip leaves little time on the water. Arrive in Beyin the evening before and you can take an early canoe.",
   },
   {
     when: "Around 8:00",
@@ -143,7 +144,7 @@ export default function NzulenzuPage() {
         intro="The canoe through the Amansuri wetland, the walk along the village boardwalk, and how to fit it all into one easy day."
       />
 
-      <section className="py-20 md:py-28">
+      <section className="pb-16 pt-20 md:pb-20 md:pt-28">
         <Container>
           <div className="mx-auto max-w-2xl">
             <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-green">
@@ -159,8 +160,18 @@ export default function NzulenzuPage() {
               the cool morning on the water.
             </p>
           </div>
+        </Container>
+      </section>
 
-          <ol className="mx-auto mt-14 max-w-2xl space-y-14 border-l border-gray-light pl-8">
+      <VillaTeaser
+        title="Spend the night before in Beyin"
+        body="Aracuya is a three-bedroom over-water villa in Beyin, where the canoe to Nzulenzu leaves. Stay here and you can be on the first canoe out."
+        placeName="Nzulenzu"
+      />
+
+      <section className="pb-20 md:pb-28">
+        <Container>
+          <ol className="mx-auto max-w-2xl space-y-14 border-l border-gray-light pl-8">
             {steps.map((s) => (
               <li key={s.title} className="relative">
                 <span

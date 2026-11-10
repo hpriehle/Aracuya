@@ -195,6 +195,59 @@ export function VillaStay({
   );
 }
 
+// A short villa card near the top of each page, so a visitor sees where to stay
+// before reading on. The full VillaStay block repeats it at the bottom.
+export function VillaTeaser({
+  title,
+  body,
+  placeName,
+}: {
+  title: string;
+  body: string;
+  placeName: string;
+}) {
+  return (
+    <section className="pb-16 md:pb-20">
+      <Container>
+        <div className="mx-auto grid max-w-5xl overflow-hidden rounded-sm bg-green text-cream md:grid-cols-[1.1fr_1fr]">
+          <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[320px]">
+            <Image
+              src="/images/hero/main.jpg"
+              alt="Aracuya from above: a thatched villa on stilts, reached by a long boardwalk over lily-covered water"
+              fill
+              sizes="(min-width: 768px) 540px, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="p-8 md:p-10">
+            <span className="font-body text-xs font-medium uppercase tracking-[0.2em] text-cream/60">
+              Where to stay
+            </span>
+            <h2 className="mt-3 font-heading text-h3 font-light">{title}</h2>
+            <p className="mt-4 font-body text-body font-light leading-relaxed text-cream/75">
+              {body}
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <Button href="/rooms" variant="dark" size="sm">
+                See the villa
+              </Button>
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-body text-small font-light text-cream underline underline-offset-4"
+                aria-label={`Ask us on WhatsApp about visiting ${placeName}`}
+              >
+                Ask us on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
 const guidePages = [
   {
     href: "/nzulezu",
