@@ -33,7 +33,7 @@ export function RoomGallery({ room }: RoomGalleryProps) {
                 >
                   <Image
                     src={src}
-                    alt={`${room.name} - Photo ${i + 1}`}
+                    alt={room.images.alts[i] ?? `${room.name}, photo ${i + 1}`}
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"

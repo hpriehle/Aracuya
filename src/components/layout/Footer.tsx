@@ -59,6 +59,14 @@ export function Footer() {
               <a href="mailto:info@aracuya.com" className="transition-colors duration-300 hover:text-cream">
                 info@aracuya.com
               </a>
+              <a
+                href="https://maps.google.com/?cid=5391552058959860296"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors duration-300 hover:text-cream"
+              >
+                Aracuya on Google Maps
+              </a>
               <div className="flex items-center gap-2">
                 <a href="tel:+233551542355" className="transition-colors duration-300 hover:text-cream">
                   +233 55 154 2355

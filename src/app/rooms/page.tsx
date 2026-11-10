@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵700/night. Reserve direct at Aracuya.",
     images: [
       {
-        url: "/images/rooms/suite/hero.jpg",
+        url: "/images/rooms/suite/aracuya-living-room.jpg",
         width: 1200,
         height: 630,
         alt: "Aracuya floating villa near Nzulezu, Ghana",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Rooms & Rates | Aracuya Floating Villa, Ghana",
     description:
       "Book one room, two, or the entire over-water villa. Three bedrooms, three baths, sleeps six. Rates from GH₵700/night. Reserve direct at Aracuya.",
-    images: ["/images/rooms/suite/hero.jpg"],
+    images: ["/images/rooms/suite/aracuya-living-room.jpg"],
   },
 };
 
@@ -69,7 +69,7 @@ export default function RoomsPage() {
               >
                 <Image
                   src={property.images.hero}
-                  alt={property.name}
+                  alt={property.images.alts[0]}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -86,7 +86,7 @@ export default function RoomsPage() {
                   >
                     <Image
                       src={src}
-                      alt={`${property.name} - Photo ${i + 2}`}
+                      alt={property.images.alts[i + 1]}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-105"

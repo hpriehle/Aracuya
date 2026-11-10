@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  const headingRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -49,8 +49,8 @@ export function Hero() {
       <div className="absolute inset-0 bg-black/40 z-10" />
 
       <Image
-        src="/images/hero/main.jpg"
-        alt="Aracuya luxury hotel"
+        src="/images/hero/aracuya-aerial-view.jpg"
+        alt="Aracuya from above: a thatched floating villa on stilts over lily-covered water in Beyin, Ghana"
         fill
         priority
         quality={85}
@@ -59,11 +59,18 @@ export function Hero() {
       />
 
       <div className="relative z-20 flex min-h-dvh flex-col items-center justify-center px-5 py-28 text-center text-white">
-        <h1
-          ref={headingRef}
-          className="font-mitchaella text-h2 tracking-wide opacity-0 md:text-h1"
-        >
-          Where Luxury Meets Tradition
+        {/* The brand line is outside the animation, so the H1 names Aracuya
+            in the server HTML whether or not JavaScript runs. */}
+        <h1 className="flex flex-col items-center">
+          <span className="font-body text-xs font-medium uppercase tracking-[0.3em] text-white/85 md:text-small">
+            Aracuya &middot; Floating villa in Beyin, Ghana
+          </span>
+          <span
+            ref={headingRef}
+            className="mt-5 font-mitchaella text-h2 tracking-wide opacity-0 md:text-h1"
+          >
+            Where Luxury Meets Tradition
+          </span>
         </h1>
         <div ref={buttonRef} className="mt-8 opacity-0">
           <Link

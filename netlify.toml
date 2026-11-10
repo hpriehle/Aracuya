@@ -4,3 +4,54 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Villa photos renamed 2026-11-10 so their file names say Aracuya; old paths stay reachable.
+[[redirects]]
+  from = "/images/hero/main.jpg"
+  to = "/images/hero/aracuya-aerial-view.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/shared/experience.jpg"
+  to = "/images/shared/aracuya-floating-villa-beyin.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/about/hero.jpg"
+  to = "/images/about/aracuya-villa-sunset.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/about/story-1.jpg"
+  to = "/images/about/aracuya-lake-view-interior.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/about/story-2.jpg"
+  to = "/images/about/aracuya-villa-from-above.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/rooms/suite/hero.jpg"
+  to = "/images/rooms/suite/aracuya-living-room.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/rooms/suite/gallery-1.jpg"
+  to = "/images/rooms/suite/aracuya-bedroom.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/rooms/suite/gallery-2.jpg"
+  to = "/images/rooms/suite/aracuya-stone-bathroom.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/rooms/suite/gallery-3.jpg"
+  to = "/images/rooms/suite/aracuya-hallway.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/images/rooms/suite/gallery-4.jpg"
+  to = "/images/rooms/suite/aracuya-windows-over-water.jpg"
+  status = 301
