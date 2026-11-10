@@ -31,6 +31,12 @@ export function Footer() {
                 Rooms
               </Link>
               <Link
+                href="/nzulezu"
+                className="font-body text-small transition-colors duration-300 hover:text-cream"
+              >
+                Visiting Nzulezu
+              </Link>
+              <Link
                 href="/about"
                 className="font-body text-small transition-colors duration-300 hover:text-cream"
               >
