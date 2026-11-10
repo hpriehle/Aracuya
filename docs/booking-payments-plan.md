@@ -138,8 +138,8 @@ Netlify site `aracuya` deploys from GitHub `hpriehle/Aracuya`, branch `main`. As
 5. Test the card (4242), a card cancel, MoMo success/decline, and the MTN callback (it works over HTTPS).
 
 ### Stage 2: production
-1. **Stripe:** change the public business name from "Automaddie" to Aracuya (or use a separate Stripe account). Optionally turn off Link's bank payments. Create the live webhook `https://aracuya.com/api/stripe/webhook`.
-2. **Live values:** put them in `.env.production.local` (git-ignored): `sk_live_` key, live webhook secret, the real calendar ID, the booking-site feeds, Resend, `BOOKING_NOTIFY_EMAIL`. Then run `bash scripts/push-netlify-env.sh production .env.production.local`.
+1. **Stripe:** the account stays Automaddie (it's used for other products). Each Aracuya payment adds the statement suffix `ARACUYA` (statements read `AUTOMADDIE* ARACUYA`), and Checkout explains that Automaddie processes Aracuya's payments; other products are unaffected. Create the live webhook `https://aracuya.com/api/stripe/webhook` (`checkout.session.completed`, `checkout.session.expired`).
+2. **Live values:** `.env.production.local` (git-ignored) already holds the calendar, feeds, Resend and notify email; add the live Stripe keys with `bash scripts/set-stripe-keys.sh .env.production.local` (and `--webhook`). It needs: `sk_live_` key, live webhook secret, the real calendar ID, the booking-site feeds, Resend, `BOOKING_NOTIFY_EMAIL`. Then run `bash scripts/push-netlify-env.sh production .env.production.local`.
 3. **Booking platforms:** Airbnb, VRBO and Booking.com each need to import the Aracuya Villas calendar's secret iCal address.
 4. **Resend:** verify a sending domain and set `BOOKING_EMAIL_FROM`, so guests get Aracuya's own confirmation emails.
 5. **Deploy:** merge the PR to `main`.

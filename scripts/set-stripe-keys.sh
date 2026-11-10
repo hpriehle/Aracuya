@@ -5,13 +5,21 @@
 #   bash scripts/set-stripe-keys.sh --webhook  # webhook signing secret (whsec_...),
 #                                              # only once the site is deployed and a
 #                                              # webhook endpoint exists in Stripe
+#   bash scripts/set-stripe-keys.sh .env.production.local   # live keys: save to that file
 #
-# Replaces any existing line for the same variable in .env.local.
+# Replaces any existing line for the same variable in .env.local (or the given file).
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+WEBHOOK=""
 ENV_FILE=".env.local"
+for arg in "$@"; do
+  case "$arg" in
+    --webhook) WEBHOOK=1 ;;
+    *) ENV_FILE="$arg" ;;
+  esac
+done
 touch "$ENV_FILE"
 chmod 600 "$ENV_FILE"
 
@@ -24,7 +32,7 @@ set_var() {
   chmod 600 "$ENV_FILE"
 }
 
-if [[ "${1:-}" == "--webhook" ]]; then
+if [[ -n "$WEBHOOK" ]]; then
   read -rsp "Webhook signing secret (whsec_...): " WH
   echo
   if [[ "$WH" != whsec_* ]]; then
@@ -37,7 +45,7 @@ if [[ "${1:-}" == "--webhook" ]]; then
   exit 0
 fi
 
-read -rsp "Stripe secret key (sk_test_...): " SK
+read -rsp "Stripe secret key (sk_test_... or sk_live_...): " SK
 echo
 case "$SK" in
   sk_test_*) MODE="test" ;;
@@ -47,8 +55,8 @@ case "$SK" in
     read -rp "Continue? [y/N] " OK
     [[ "$OK" == [yY] ]] || { echo "Cancelled."; exit 1; }
     ;;
-  rk_*) echo "That's a restricted key. Use the standard secret key (sk_test_...)." >&2; exit 1 ;;
-  *) echo "That doesn't look like a Stripe secret key (it should start with sk_test_)." >&2; exit 1 ;;
+  rk_*) echo "That's a restricted key. Use the standard secret key (sk_test_... or sk_live_...)." >&2; exit 1 ;;
+  *) echo "That doesn't look like a Stripe secret key (it should start with sk_test_ or sk_live_)." >&2; exit 1 ;;
 esac
 
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -u "$SK:" https://api.stripe.com/v1/balance || echo "000")

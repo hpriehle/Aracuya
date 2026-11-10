@@ -219,6 +219,16 @@ async function startCard(
         metadata,
         receipt_email: email,
         description: `Aracuya booking ${details.bookingId}`,
+        // The Stripe account is Automaddie's. The suffix is per payment, so only
+        // Aracuya bookings read "AUTOMADDIE* ARACUYA" on card statements.
+        statement_descriptor_suffix: "ARACUYA",
+      },
+      // The page header shows the account name (Automaddie); explain it.
+      custom_text: {
+        submit: {
+          message:
+            "Payments for Aracuya are processed by Automaddie. Your card statement will show AUTOMADDIE* ARACUYA.",
+        },
       },
       expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60,
       success_url: `${origin}/reserve/confirmed?session_id={CHECKOUT_SESSION_ID}`,
