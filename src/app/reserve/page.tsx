@@ -31,7 +31,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ReservePage() {
+export default async function ReservePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ payment?: string }>;
+}) {
+  const { payment } = await searchParams;
+
   return (
     <section className="relative min-h-dvh w-full overflow-hidden">
       <div className="absolute inset-0 bg-black/50 z-10" />
@@ -48,7 +54,7 @@ export default function ReservePage() {
 
       <div className="relative z-20 flex min-h-dvh items-center justify-center px-5 py-32">
         <div className="w-full max-w-md">
-          <BookingWidget variant="dark" />
+          <BookingWidget variant="dark" paymentCancelled={payment === "cancelled"} />
         </div>
       </div>
     </section>

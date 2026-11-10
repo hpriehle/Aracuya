@@ -14,6 +14,8 @@ interface CurrencyContextValue {
   currency: Currency;
   toggleCurrency: () => void;
   formatPrice: (ghsAmount: number) => string;
+  /** GHS per 1 USD (display only; checkout fixes its own rate server-side). */
+  rate: number;
 }
 
 // GHS per 1 USD. Prices are stored in GHS; USD is derived from this rate.
@@ -25,6 +27,7 @@ const CurrencyContext = createContext<CurrencyContextValue>({
   currency: "GHS",
   toggleCurrency: () => {},
   formatPrice: (ghs) => `GH₵${ghs}`,
+  rate: FALLBACK_RATE,
 });
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
@@ -74,7 +77,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <CurrencyContext.Provider value={{ currency, toggleCurrency, formatPrice }}>
+    <CurrencyContext.Provider value={{ currency, toggleCurrency, formatPrice, rate }}>
       {children}
     </CurrencyContext.Provider>
   );

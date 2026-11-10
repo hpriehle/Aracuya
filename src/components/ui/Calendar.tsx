@@ -10,6 +10,10 @@ interface CalendarProps {
   onSelectCheckIn: (date: string) => void;
   onSelectCheckOut: (date: string) => void;
   onClose: () => void;
+  /** Rooms the guest wants; nights with fewer free rooms are unavailable. */
+  roomsNeeded?: number;
+  /** Called with free-room counts per night as months load. */
+  onAvailability?: (nights: Record<string, number>) => void;
 }
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -50,6 +54,8 @@ export function Calendar({
   onSelectCheckIn,
   onSelectCheckOut,
   onClose,
+  roomsNeeded = 1,
+  onAvailability,
 }: CalendarProps) {
   const today = useMemo(() => {
     const now = new Date();
@@ -58,7 +64,8 @@ export function Calendar({
 
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [month, setMonth] = useState(() => new Date().getMonth());
-  const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
+  // Free rooms per night, merged across every month fetched so far.
+  const [nights, setNights] = useState<Record<string, number>>({});
   const [selectingCheckOut, setSelectingCheckOut] = useState(false);
 
   const isDark = variant === "dark";
@@ -74,13 +81,16 @@ export function Calendar({
     fetch(`/api/availability?start=${start}&end=${end}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.bookedDates) {
-          setBookedDates(new Set(data.bookedDates));
+        if (data.nights) {
+          setNights((prev) => ({ ...prev, ...data.nights }));
+          onAvailability?.(data.nights);
         }
       })
       .catch(() => {
         // Silently fail — all dates appear available
       });
+    // onAvailability is a callback prop; refetching on its identity is pointless
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month]);
 
   const prevMonth = useCallback(() => {
@@ -105,7 +115,31 @@ export function Calendar({
   const firstDay = getFirstDayOfMonth(year, month);
 
   const isPast = (dateStr: string) => dateStr < today;
-  const isBooked = (dateStr: string) => bookedDates.has(dateStr);
+  // A night is unavailable when it has fewer free rooms than the guest needs.
+  const isNightFull = (dateStr: string) =>
+    (nights[dateStr] ?? Number.POSITIVE_INFINITY) < roomsNeeded;
+
+  // Every night in [from, to) has enough rooms.
+  const rangeIsFree = (from: string, to: string) => {
+    const current = new Date(from + "T12:00:00");
+    const end = new Date(to + "T12:00:00");
+    while (current < end) {
+      if (isNightFull(toDateStr(current))) return false;
+      current.setDate(current.getDate() + 1);
+    }
+    return true;
+  };
+
+  // A full night can still be a checkout day: the guest leaves that morning.
+  const isValidCheckOut = (dateStr: string) =>
+    selectingCheckOut &&
+    !!checkIn &&
+    !checkOut &&
+    dateStr > checkIn &&
+    rangeIsFree(checkIn, dateStr);
+
+  const isBooked = (dateStr: string) =>
+    isNightFull(dateStr) && !isValidCheckOut(dateStr);
   const isDisabled = (dateStr: string) => isPast(dateStr) || isBooked(dateStr);
 
   const isCheckIn = (dateStr: string) => dateStr === checkIn;
@@ -130,21 +164,9 @@ export function Calendar({
         onSelectCheckIn(dateStr);
         onSelectCheckOut("");
       } else {
-        // Check if any booked date falls in the range
-        let hasBlockedDate = false;
-        const current = new Date(checkIn + "T12:00:00");
-        const end = new Date(dateStr + "T12:00:00");
-        current.setDate(current.getDate() + 1);
-        while (current < end) {
-          if (bookedDates.has(toDateStr(current))) {
-            hasBlockedDate = true;
-            break;
-          }
-          current.setDate(current.getDate() + 1);
-        }
-
-        if (hasBlockedDate) {
-          // Reset — can't book across booked dates
+        if (!rangeIsFree(checkIn, dateStr)) {
+          // Can't book across full nights — start over from the clicked date
+          // (if that night itself is full, isDisabled already stopped the click).
           onSelectCheckIn(dateStr);
           onSelectCheckOut("");
         } else {

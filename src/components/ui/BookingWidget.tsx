@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { eachNight, rangeFits } from "@/lib/booking/availability";
+import { BookingCheckout } from "@/components/ui/BookingCheckout";
 import { WHATSAPP_NUMBER, rooms } from "@/data/rooms";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Calendar } from "@/components/ui/Calendar";
-import { Button } from "@/components/ui/Button";
+import { BookingHelp } from "@/components/ui/BookingHelp";
 
 interface BookingWidgetProps {
   variant?: "light" | "dark";
+  /** The guest just came back from Stripe without paying. */
+  paymentCancelled?: boolean;
 }
 
 const property = rooms[0];
@@ -31,16 +35,45 @@ function formatDateFull(dateStr: string): string {
   });
 }
 
-export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
+export function BookingWidget({ variant = "light", paymentCancelled = false }: BookingWidgetProps) {
   const [selectedTier, setSelectedTier] = useState(0);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  // Free rooms per night, reported by the calendar as it loads months.
+  const [nights, setNights] = useState<Record<string, number>>({});
   const { formatPrice } = useCurrency();
   const calendarRef = useRef<HTMLDivElement>(null);
 
   const tier = property.pricingTiers[selectedTier];
+
+  const handleAvailability = useCallback((loaded: Record<string, number>) => {
+    setNights((prev) => ({ ...prev, ...loaded }));
+  }, []);
+
+  // Once dates are picked, an option is only offered if every night fits it.
+  const tierFits = (rooms: number) =>
+    !checkIn || !checkOut || rangeFits(nights, checkIn, checkOut, rooms);
   const isDark = variant === "dark";
+
+  const [step, setStep] = useState<"select" | "details">("select");
+  // Coming back from Stripe without paying (see /api/booking/cancel).
+  const [notice, setNotice] = useState(
+    paymentCancelled
+      ? "Payment wasn't completed, so nothing was charged and your dates were released. If you have any issues, send us a message on WhatsApp."
+      : ""
+  );
+  const stayNights = checkIn && checkOut ? eachNight(checkIn, checkOut).length : 0;
+  const canReserve = stayNights > 0 && tierFits(tier.rooms);
+
+  // Drop ?payment=cancelled so a refresh doesn't show the notice again.
+  useEffect(() => {
+    if (!paymentCancelled) return;
+    const params = new URLSearchParams(window.location.search);
+    params.delete("payment");
+    const query = params.toString();
+    window.history.replaceState(null, "", window.location.pathname + (query ? `?${query}` : ""));
+  }, [paymentCancelled]);
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -71,15 +104,43 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   }
 
+  const shell = cn(
+    "w-full rounded-lg p-6 md:p-8",
+    isDark
+      ? "border border-white/10 bg-white/5 backdrop-blur-xl"
+      : "border border-gray-light bg-white"
+  );
+
+  if (step === "details" && checkIn && checkOut) {
+    return (
+      <div className={shell}>
+        <BookingCheckout
+          variant={variant}
+          tier={tier}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          nights={stayNights}
+          whatsappUrl={getWhatsAppUrl()}
+          onBack={() => setStep("select")}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "w-full rounded-lg p-6 md:p-8",
-        isDark
-          ? "border border-white/10 bg-white/5 backdrop-blur-xl"
-          : "border border-gray-light bg-white"
+    <div className={shell}>
+      {notice && (
+        <p
+          role="status"
+          className={cn(
+            "mb-6 rounded border px-3 py-2 font-body text-xs",
+            isDark ? "border-white/15 text-cream/80" : "border-gray-light text-gray"
+          )}
+        >
+          {notice}
+        </p>
       )}
-    >
+
       {/* Room selector */}
       <div>
         <span
@@ -92,12 +153,17 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
         </span>
 
         <div className="mt-3 flex gap-4 sm:gap-6">
-          {property.pricingTiers.map((t, i) => (
+          {property.pricingTiers.map((t, i) => {
+            const fits = tierFits(t.rooms);
+            return (
             <button
               key={t.rooms}
               onClick={() => setSelectedTier(i)}
+              disabled={!fits}
+              title={fits ? undefined : "Not available for these dates"}
               className={cn(
                 "border-b-2 pb-1 font-body text-small font-medium transition-all duration-200",
+                !fits && "cursor-not-allowed line-through opacity-40",
                 selectedTier === i
                   ? isDark
                     ? "border-cream text-cream"
@@ -112,7 +178,8 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
             >
               {t.label}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         <p className="mt-3">
@@ -209,6 +276,8 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
               onSelectCheckIn={setCheckIn}
               onSelectCheckOut={setCheckOut}
               onClose={() => setCalendarOpen(false)}
+              roomsNeeded={tier.rooms}
+              onAvailability={handleAvailability}
             />
           </div>
         )}
@@ -224,30 +293,38 @@ export function BookingWidget({ variant = "light" }: BookingWidgetProps) {
 
       {/* CTA */}
       <div>
-        <a
-          href={getWhatsAppUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
+        {stayNights > 0 && (
+          <p
+            className={cn(
+              "mb-4 flex justify-between font-body text-small",
+              isDark ? "text-cream/60" : "text-gray"
+            )}
+          >
+            <span>
+              {stayNights} night{stayNights === 1 ? "" : "s"} × {formatPrice(tier.price)}
+            </span>
+            <span className={isDark ? "text-cream" : "text-black"}>
+              {formatPrice(tier.price * stayNights)}
+            </span>
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={!canReserve}
+          onClick={() => {
+            setNotice("");
+            setStep("details");
+          }}
           className={cn(
-            "inline-flex w-full items-center justify-center rounded px-8 py-3.5 font-body text-small font-medium uppercase tracking-wide transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2",
+            "inline-flex w-full items-center justify-center rounded px-8 py-3.5 font-body text-small font-medium uppercase tracking-wide transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40",
             isDark
               ? "bg-cream text-black hover:bg-white focus-visible:outline-cream"
               : "bg-green text-white hover:bg-green-light focus-visible:outline-green"
           )}
         >
-          Book on WhatsApp
-        </a>
-        <Button
-          href={property.airbnbUrl}
-          external
-          target="_blank"
-          rel="noopener noreferrer"
-          variant={isDark ? "dark" : "outline"}
-          size="sm"
-          className="mt-3 w-full"
-        >
-          View on Airbnb
-        </Button>
+          {checkIn && checkOut ? "Reserve" : "Select dates to reserve"}
+        </button>
+        <BookingHelp href={getWhatsAppUrl()} isDark={isDark} />
       </div>
     </div>
   );
