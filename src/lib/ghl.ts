@@ -19,15 +19,20 @@ export function ghlConfigured(): boolean {
 }
 
 async function ghlFetch(path: string, body: unknown): Promise<{ contact?: { id?: string } }> {
+  return ghlRequest('POST', path, body) as Promise<{ contact?: { id?: string } }>;
+}
+
+export async function ghlRequest(method: string, path: string, body?: unknown): Promise<unknown> {
   const res = await fetch(`${GHL_BASE}${path}`, {
-    method: 'POST',
+    method,
     headers: {
       Authorization: `Bearer ${process.env.GHL_API_TOKEN}`,
       Version: GHL_VERSION,
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
+    cache: 'no-store',
   });
   const text = await res.text();
   if (!res.ok) {

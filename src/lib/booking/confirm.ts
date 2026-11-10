@@ -5,6 +5,7 @@
 import type Stripe from "stripe";
 import { confirmBooking, getEvent, releaseHold, type BookingProps } from "./calendar";
 import { sendBookingEmails, sendOwnerAlert } from "./email";
+import { ghlBookingConfirmed } from "./ghl-booking";
 import { isStripeTestMode } from "@/lib/payments/stripe";
 import { getRequestToPayStatus, isMomoSandbox, momoFailureMessage } from "@/lib/payments/momo";
 
@@ -31,7 +32,10 @@ export async function finalizeStripeSession(
       paymentRef,
       paidLabel: label,
     });
-    if (newlyConfirmed) await sendBookingEmails(props, label, isStripeTestMode());
+    if (newlyConfirmed) {
+      await ghlBookingConfirmed(props, label, isStripeTestMode());
+      await sendBookingEmails(props, label, isStripeTestMode());
+    }
     return props;
   } catch (err) {
     // The guest paid but the hold is gone (deleted by hand, or expired and
@@ -85,7 +89,10 @@ export async function checkMomoBooking(eventId: string, bookingId: string): Prom
       paymentRef: result.financialTransactionId || props.paymentRef,
       paidLabel: label,
     });
-    if (newlyConfirmed) await sendBookingEmails(confirmed, label, isMomoSandbox());
+    if (newlyConfirmed) {
+      await ghlBookingConfirmed(confirmed, label, isMomoSandbox());
+      await sendBookingEmails(confirmed, label, isMomoSandbox());
+    }
     return { status: "confirmed" };
   }
 
