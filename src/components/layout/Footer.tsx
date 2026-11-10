@@ -67,6 +67,14 @@ export function Footer() {
               >
                 Aracuya on Google Maps
               </a>
+              <a
+                href="https://www.instagram.com/aracuya.gh/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors duration-300 hover:text-cream"
+              >
+                Instagram @aracuya.gh
+              </a>
               <div className="flex items-center gap-2">
                 <a href="tel:+233551542355" className="transition-colors duration-300 hover:text-cream">
                   +233 55 154 2355

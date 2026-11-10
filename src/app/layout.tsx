@@ -97,6 +97,7 @@ export default function RootLayout({
     sameAs: [
       "https://airbnb.com/h/aracuya",
       "https://maps.google.com/?cid=5391552058959860296",
+      "https://www.instagram.com/aracuya.gh/",
     ],
   };
 
