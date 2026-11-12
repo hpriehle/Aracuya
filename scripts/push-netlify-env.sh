@@ -28,8 +28,9 @@ NAMES = [
     "NEXT_PUBLIC_MOMO_MODE",
     "RESEND_API_KEY", "BOOKING_NOTIFY_EMAIL", "BOOKING_EMAIL_FROM",
     "BOOKING_CALENDAR_WRITES",
+    "GHL_API_TOKEN", "GHL_LOCATION_ID",
 ]
-MOMO = NAMES[6:10]
+MOMO = ["MOMO_ENVIRONMENT", "MOMO_COLLECTIONS_USER_ID", "MOMO_COLLECTIONS_API_KEY", "MOMO_COLLECTIONS_SUBSCRIPTION_KEY"]
 # For "preview", PREVIEW_<NAME> in the env file wins over <NAME>, e.g.
 # PREVIEW_GOOGLE_BOOKING_CALENDAR_ID=<test calendar>, PREVIEW_BOOKING_CALENDAR_WRITES=on
 
@@ -62,6 +63,8 @@ if target == "preview":
     values.update({k: v for k, v in preview_values.items() if v})
 
 if target == "production":
+    if not (values.get("GHL_API_TOKEN") and values.get("GHL_LOCATION_ID")):
+        print("Warning: GHL_API_TOKEN or GHL_LOCATION_ID missing; guest confirmations via GHL won't send.")
     if not values.get("STRIPE_SECRET_KEY", "").startswith("sk_live_"):
         die(f"Refusing: STRIPE_SECRET_KEY in {env_file} is not a live key (sk_live_...).")
     if not values.get("STRIPE_WEBHOOK_SECRET"):
