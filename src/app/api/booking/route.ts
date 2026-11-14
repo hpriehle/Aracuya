@@ -16,6 +16,7 @@ import { ghlBookingStarted } from "@/lib/booking/ghl-booking";
 import { CANCELLATION_POLICY } from "@/lib/booking/policy";
 import { rooms as roomData } from "@/data/rooms";
 import { rangeFits } from "@/lib/booking/availability";
+import { REF_COOKIE, parseRefCode } from "@/lib/referral";
 import {
   CalendarNotConfiguredError,
   SoldOutError,
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
       guests,
       totalGhs: q.totalGhs,
       provider: method === "card" ? "stripe" : "momo",
-      referral: request.cookies.get("aracuya_ref")?.value,
+      referral: parseRefCode(request.cookies.get(REF_COOKIE)?.value) ?? undefined,
     };
 
     if (method === "momo") {
@@ -196,7 +197,8 @@ async function startCard(
       guestName: name,
       guestPhone: phone,
       guests: String(guests),
-      ...(details.referral ? { referral: details.referral.slice(0, 60) } : {}),
+      // Partner ref code (from a ?ref link); reported to Abeiku once paid.
+      ...(details.referral ? { refCode: details.referral } : {}),
     };
 
     const session = await stripe.checkout.sessions.create({
