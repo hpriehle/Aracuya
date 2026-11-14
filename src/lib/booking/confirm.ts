@@ -6,6 +6,7 @@ import type Stripe from "stripe";
 import { confirmBooking, getEvent, releaseHold, type BookingProps } from "./calendar";
 import { sendBookingEmails, sendOwnerAlert } from "./email";
 import { ghlBookingConfirmed } from "./ghl-booking";
+import { reportReferralBooking } from "./referral-report";
 import { isStripeTestMode } from "@/lib/payments/stripe";
 import { getRequestToPayStatus, isMomoSandbox, momoFailureMessage } from "@/lib/payments/momo";
 
@@ -33,8 +34,11 @@ export async function finalizeStripeSession(
       paidLabel: label,
     });
     if (newlyConfirmed) {
+      // Partner credit runs alongside the guest notices; it never throws.
+      const referral = reportReferralBooking(session);
       await ghlBookingConfirmed(props, label, isStripeTestMode());
       await sendBookingEmails(props, label, isStripeTestMode());
+      await referral;
     }
     return props;
   } catch (err) {
