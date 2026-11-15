@@ -1,5 +1,5 @@
-// A paid booking with a ref code is reported to Abeiku, and Abeiku being down
-// never stops the booking from confirming.
+// Every paid booking is reported to Abeiku (ref_code null when there is none),
+// and Abeiku being down never stops the booking from confirming.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type Stripe from "stripe";
@@ -25,6 +25,7 @@ function session(meta: Record<string, string> = {}): Stripe.Checkout.Session {
     payment_intent: "pi_1",
     amount_total: 5975,
     currency: "usd",
+    customer_email: "ama@example.com",
     metadata: {
       bookingId: "ARC-1A2B3C4D",
       eventId: "evt_1",
@@ -33,6 +34,11 @@ function session(meta: Record<string, string> = {}): Stripe.Checkout.Session {
       nights: "1",
       totalGhs: "700",
       ghsPerUsd: "11.716",
+      rooms: "2",
+      roomsLabel: "2 Rooms",
+      guestName: "Ama Mensah",
+      guestPhone: "+233 24 000 0000",
+      guests: "3",
       refCode: "Carmens-Travels",
       ...meta,
     },
@@ -75,6 +81,12 @@ describe("finalizeStripeSession → Abeiku", () => {
       amount_paid: 59.75,
       currency: "usd",
       paid_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+      guest_name: "Ama Mensah",
+      guest_email: "ama@example.com",
+      guest_phone: "+233 24 000 0000",
+      room: { id: "2", name: "2 Rooms" },
+      rooms_count: 2,
+      guests: 3,
     });
     expect(ghlBookingConfirmed).toHaveBeenCalled();
     expect(sendBookingEmails).toHaveBeenCalled();
@@ -92,9 +104,56 @@ describe("finalizeStripeSession → Abeiku", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("does not report without a ref code", async () => {
+  it("reports a booking without a ref code, with ref_code null", async () => {
+    const { refCode: _drop, ...noRef } = session().metadata!;
+    await finalizeStripeSession({ ...session(), metadata: noRef } as Stripe.Checkout.Session);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.ref_code).toBeNull();
+    expect(body.booking_ref).toBe("ARC-1A2B3C4D");
+    expect(body.guest_name).toBe("Ama Mensah");
+    expect(body.room).toEqual({ id: "2", name: "2 Rooms" });
+  });
+
+  it("an empty ref code is also sent as null", async () => {
     await finalizeStripeSession(session({ refCode: "" }));
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).ref_code).toBeNull();
+  });
+
+  it("Entire House: room id 3; email falls back to what the guest typed at Stripe", async () => {
+    const s = session({ rooms: "3", roomsLabel: "Entire House" });
+    await finalizeStripeSession({
+      ...s,
+      customer_email: null,
+      customer_details: { email: "kofi@example.com" },
+    } as unknown as Stripe.Checkout.Session);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.room).toEqual({ id: "3", name: "Entire House" });
+    expect(body.rooms_count).toBe(3);
+    expect(body.guest_email).toBe("kofi@example.com");
+  });
+
+  it("missing guest and room fields are null, never invented", async () => {
+    const { rooms, roomsLabel, guestName, guestPhone, guests, ...rest } = session().metadata!;
+    void [rooms, roomsLabel, guestName, guestPhone, guests];
+    await finalizeStripeSession({ ...session(), customer_email: null, metadata: rest } as Stripe.Checkout.Session);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body).toMatchObject({
+      guest_name: null,
+      guest_email: null,
+      guest_phone: null,
+      room: null,
+      rooms_count: null,
+      guests: null,
+    });
+  });
+
+  it("never logs the guest's email or phone when Abeiku fails", async () => {
+    fetchMock.mockResolvedValue(new Response("bad email ama@example.com phone +233 24 000 0000", { status: 422 }));
+    await finalizeStripeSession(session());
+    const logged = JSON.stringify(vi.mocked(console.error).mock.calls);
+    expect(logged).not.toContain("ama@example.com");
+    expect(logged).not.toContain("+233");
   });
 
   it("skips silently when ABEIKU_REFERRAL_SECRET is unset", async () => {
@@ -120,7 +179,7 @@ describe("finalizeStripeSession → Abeiku", () => {
   it("Abeiku returns 500: booking still confirms, error logged", async () => {
     fetchMock.mockResolvedValue(new Response("boom", { status: 500 }));
     expect(await finalizeStripeSession(session())).toEqual(PROPS);
-    expect(console.error).toHaveBeenCalledWith("[referral] Abeiku report failed", "ARC-1A2B3C4D", 500, "boom");
+    expect(console.error).toHaveBeenCalledWith("[referral] Abeiku report failed", "ARC-1A2B3C4D", 500);
   });
 
   it("Abeiku hangs: gives up after 5s and the booking still confirms", async () => {

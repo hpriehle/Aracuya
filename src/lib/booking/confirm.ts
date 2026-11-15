@@ -34,7 +34,7 @@ export async function finalizeStripeSession(
       paidLabel: label,
     });
     if (newlyConfirmed) {
-      // Partner credit runs alongside the guest notices; it never throws.
+      // The Abeiku report runs alongside the guest notices; it never throws.
       const referral = reportReferralBooking(session);
       await ghlBookingConfirmed(props, label, isStripeTestMode());
       await sendBookingEmails(props, label, isStripeTestMode());
