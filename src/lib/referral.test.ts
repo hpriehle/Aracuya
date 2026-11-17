@@ -1,12 +1,14 @@
 // ?ref=CODE on any page → aracuya_ref cookie for 30 days.
 
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy, config } from "@/proxy";
 import { REF_COOKIE, parseRefCode } from "@/lib/referral";
 
-function visit(url: string) {
-  return proxy(new NextRequest(url)).cookies.get(REF_COOKIE);
+beforeEach(() => vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}"))));
+
+async function visit(url: string) {
+  return (await proxy(new NextRequest(url))).cookies.get(REF_COOKIE);
 }
 
 describe("parseRefCode", () => {
@@ -22,8 +24,8 @@ describe("parseRefCode", () => {
 });
 
 describe("proxy", () => {
-  it("sets a 30-day first-party cookie from ?ref", () => {
-    const c = visit("https://aracuya.com/nzulezu?ref=Carmens-Travels");
+  it("sets a 30-day first-party cookie from ?ref", async () => {
+    const c = await visit("https://aracuya.com/nzulezu?ref=Carmens-Travels");
     expect(c?.value).toBe("Carmens-Travels");
     expect(c?.maxAge).toBe(30 * 24 * 60 * 60);
     expect(c?.path).toBe("/");
@@ -32,14 +34,14 @@ describe("proxy", () => {
     expect(c?.secure).toBe(true);
   });
 
-  it("a later ?ref overwrites the cookie", () => {
+  it("a later ?ref overwrites the cookie", async () => {
     const req = new NextRequest("https://aracuya.com/?ref=NEW-1", { headers: { cookie: `${REF_COOKIE}=OLD` } });
-    expect(proxy(req).cookies.get(REF_COOKIE)?.value).toBe("NEW-1");
+    expect((await proxy(req)).cookies.get(REF_COOKIE)?.value).toBe("NEW-1");
   });
 
-  it("ignores invalid codes and leaves an existing cookie alone", () => {
-    expect(visit("https://aracuya.com/?ref=not%20valid")).toBeUndefined();
-    expect(visit(`https://aracuya.com/?ref=${"x".repeat(41)}`)).toBeUndefined();
+  it("ignores invalid codes and leaves an existing cookie alone", async () => {
+    expect(await visit("https://aracuya.com/?ref=not%20valid")).toBeUndefined();
+    expect(await visit(`https://aracuya.com/?ref=${"x".repeat(41)}`)).toBeUndefined();
   });
 
   it("only runs on page requests that carry ?ref", () => {
