@@ -2,6 +2,14 @@
   command = "npm run build"
   publish = ".next"
 
+# Skew protection: every page asks for its CSS/JS with ?dpl=<the deploy that
+# built it>, and Netlify serves those files from that deploy. So a page built
+# by an older deploy (in a browser's cache, a restored tab, any cache) still
+# gets its own styles after a new deploy, instead of a 404 and an unstyled page.
+# See docs/stale-html-after-deploy.md. src/skew-protection.test.ts checks this.
+[build.environment]
+  NETLIFY_NEXT_SKEW_PROTECTION = "true"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
