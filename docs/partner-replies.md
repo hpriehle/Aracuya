@@ -97,7 +97,7 @@ Before sending: click "Mark yes" on the partner in Siteboard. That sends their A
 > Abina
 > Aracuya
 
-## 4. Dates and availability (Dec 18 to Jan 3)
+## 4. Dates and availability (Dec 20 to Jan 3)
 
 **WhatsApp**
 
