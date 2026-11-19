@@ -140,7 +140,7 @@ export default function ChristmasPage() {
               The calendar shows live availability. Pick your nights between 20
               December and 3 January, then pay by card to book.
             </p>
-            <BookingWidget variant="light" />
+            <BookingWidget variant="light" initialMonth="2026-12" />
           </div>
         </Container>
       </section>

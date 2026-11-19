@@ -14,6 +14,8 @@ interface CalendarProps {
   roomsNeeded?: number;
   /** Called with free-room counts per night as months load. */
   onAvailability?: (nights: Record<string, number>) => void;
+  /** Month to open on, as "YYYY-MM"; ignored once it is in the past. */
+  initialMonth?: string;
 }
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -47,6 +49,14 @@ function getFirstDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 1).getDay();
 }
 
+/** The month the calendar opens on: initialMonth, unless it is before the current month. */
+export function startMonth(initialMonth?: string, now = new Date()): { year: number; month: number } {
+  const current = { year: now.getFullYear(), month: now.getMonth() };
+  if (!initialMonth) return current;
+  const [year, m] = initialMonth.split("-").map(Number);
+  return year * 12 + m - 1 < current.year * 12 + current.month ? current : { year, month: m - 1 };
+}
+
 export function Calendar({
   variant = "light",
   checkIn,
@@ -56,14 +66,15 @@ export function Calendar({
   onClose,
   roomsNeeded = 1,
   onAvailability,
+  initialMonth,
 }: CalendarProps) {
   const today = useMemo(() => {
     const now = new Date();
     return toDateStr(now);
   }, []);
 
-  const [year, setYear] = useState(() => new Date().getFullYear());
-  const [month, setMonth] = useState(() => new Date().getMonth());
+  const [year, setYear] = useState(() => startMonth(initialMonth).year);
+  const [month, setMonth] = useState(() => startMonth(initialMonth).month);
   // Free rooms per night, merged across every month fetched so far.
   const [nights, setNights] = useState<Record<string, number>>({});
   const [selectingCheckOut, setSelectingCheckOut] = useState(false);
