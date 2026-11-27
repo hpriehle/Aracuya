@@ -54,6 +54,17 @@ async function sendEmail({ name, email, phone, subject, message }: Lead): Promis
   return data?.id;
 }
 
+// The Siteboard inbox's copy (hub /api/ingest/lead, the same token as /api/collect).
+async function sendToHub({ name, email, phone, subject, message }: Lead): Promise<void> {
+  if (!process.env.HUB_INGEST_TOKEN) throw new Error('HUB_INGEST_TOKEN not set');
+  const res = await fetch('https://hub.clntacq.com/api/ingest/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.HUB_INGEST_TOKEN}` },
+    body: JSON.stringify({ site: 'aracuya', name, email, phone, message: `${subject}\n\n${message}`, page: '/contact' }),
+  });
+  if (!res.ok) throw new Error(`hub ${res.status}: ${await res.text()}`);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -101,8 +112,8 @@ export async function POST(request: NextRequest) {
     const lead = { name, email, phone, subject, message };
 
     // GoHighLevel is the record of every enquiry; the email is the alert.
-    // Both run, and the visitor only sees an error if both fail.
-    const [ghl, mail] = await Promise.allSettled([
+    // Both run, and the visitor only sees an error if both fail. The hub copy is extra.
+    const [ghl, mail, hub] = await Promise.allSettled([
       ghlConfigured()
         ? upsertGhlLead({
             name,
@@ -114,7 +125,9 @@ export async function POST(request: NextRequest) {
           })
         : Promise.reject(new Error('GHL_API_TOKEN / GHL_LOCATION_ID not set')),
       sendEmail(lead),
+      sendToHub(lead),
     ]);
+    if (hub.status === 'rejected') console.error('[Contact API] Hub failed:', hub.reason);
 
     if (ghl.status === 'fulfilled') {
       console.log('[Contact API] GHL contact upserted:', ghl.value);
