@@ -13,6 +13,8 @@ interface BookingWidgetProps {
   variant?: "light" | "dark";
   /** The guest just came back from Stripe without paying. */
   paymentCancelled?: boolean;
+  /** Month the calendar opens on, as "YYYY-MM". Defaults to the current month. */
+  initialMonth?: string;
 }
 
 const property = rooms[0];
@@ -35,7 +37,7 @@ function formatDateFull(dateStr: string): string {
   });
 }
 
-export function BookingWidget({ variant = "light", paymentCancelled = false }: BookingWidgetProps) {
+export function BookingWidget({ variant = "light", paymentCancelled = false, initialMonth }: BookingWidgetProps) {
   const [selectedTier, setSelectedTier] = useState(0);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -278,6 +280,7 @@ export function BookingWidget({ variant = "light", paymentCancelled = false }: B
               onClose={() => setCalendarOpen(false)}
               roomsNeeded={tier.rooms}
               onAvailability={handleAvailability}
+              initialMonth={initialMonth}
             />
           </div>
         )}
