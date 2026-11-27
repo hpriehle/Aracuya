@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
-import { navigationLinks } from "@/data/navigation";
+import { navigationLinks, isChristmasSeason } from "@/data/navigation";
 import { Button } from "@/components/ui/Button";
 import { CurrencyToggle } from "@/components/ui/CurrencyToggle";
 import { MobileMenu } from "./MobileMenu";
+
+const noSubscribe = () => () => {};
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,6 +29,11 @@ export function Header() {
 
   const isScrolled = scrollY > 50 || !hasDarkHero;
 
+  // Static HTML always carries the strip; the browser's clock hides it after the season.
+  const showChristmas =
+    useSyncExternalStore(noSubscribe, () => isChristmasSeason(), () => true) &&
+    pathname !== "/christmas";
+
   return (
     <>
       <header
@@ -37,6 +44,17 @@ export function Header() {
             : "bg-transparent"
         )}
       >
+        {showChristmas && (
+          <Link
+            href="/christmas"
+            className="block bg-green px-5 py-2 text-center text-small text-cream transition-colors hover:bg-green-light"
+          >
+            Christmas and New Year on the water: 20 Dec to 3 Jan.{" "}
+            <span className="underline underline-offset-2">
+              See dates and rates
+            </span>
+          </Link>
+        )}
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-5 py-5 md:px-10 lg:px-16">
           <Link
             href="/"
